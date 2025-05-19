@@ -4,8 +4,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Sidebar as UiSidebar, 
-  SidebarHeader as UiSidebarHeader, 
+  Sidebar as UiSidebar,
+  SidebarHeader as UiSidebarHeader,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -34,38 +34,33 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { setOpen, open, isMobile } = useSidebar(); 
+  const { setOpen, open, isMobile, state: sidebarState } = useSidebar(); // Added sidebarState
 
   return (
     <UiSidebar
       variant="sidebar"
       collapsible="icon"
       className="border-r bg-card text-card-foreground"
-      sheetTitle="Askhajaya Menu" 
+      sheetTitle="Askhajaya Menu"
     >
       <UiSidebarHeader className="p-2 flex justify-between items-center">
+        {/* Desktop Logo/Title - shows full when expanded, icon when collapsed */}
         <Link href="/dashboard" className={cn(
             "flex items-center gap-2",
-            "group-data-[collapsible=icon]:group-data-[state=expanded]:inline",
-            "group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden",
-            isMobile && "hidden" 
+            isMobile && "hidden", // Hide this Link entirely on mobile as title is in SheetHeader
+            "group-data-[collapsible=icon]:group-data-[state=expanded]:inline-flex",
+            "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-full group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center"
             )}>
-           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
-          <span className="text-lg font-semibold">Askhajaya</span>
+          <span className={cn(
+              "text-lg font-semibold",
+              "group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden" // Hide text when collapsed
+            )}>Askhajaya</span>
         </Link>
-        <Link href="/dashboard" className={cn(
-            "items-center justify-center",
-            "group-data-[collapsible=icon]:group-data-[state=expanded]:hidden",
-            "group-data-[collapsible=icon]:group-data-[state=collapsed]:flex",
-            "hidden md:flex w-full",
-             isMobile && "hidden" 
-            )}>
-           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-          </svg>
-        </Link>
+
+        {/* Mobile Menu Toggle - Replaces the logo/title area on mobile to provide a close button */}
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">
               {open ? <PanelLeftClose /> : <PanelLeftOpen />}
@@ -88,7 +83,7 @@ export function Sidebar() {
                         tooltip={item.label}
                       >
                         <a>
-                          <item.icon className="h-4 w-4" /> 
+                          <item.icon className="h-4 w-4 shrink-0" />
                           <span className="truncate">{item.label}</span>
                         </a>
                       </SidebarMenuButton>
@@ -104,14 +99,18 @@ export function Sidebar() {
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-2 text-left p-2 h-8 text-sm", 
-            "group-data-[state=collapsed]/sidebar:w-8 group-data-[state=collapsed]/sidebar:h-8 group-data-[state=collapsed]/sidebar:p-0 group-data-[state=collapsed]/sidebar:justify-center"
+            "w-full justify-start gap-2 text-left p-2 h-8 text-sm",
+            // Apply collapsed styles based on sidebarState for non-mobile
+            !isMobile && sidebarState === "collapsed" && "w-8 h-8 p-0 justify-center"
           )}
           onClick={logout}
-          title="Logout" 
+          title="Logout" // Tooltip for collapsed state
         >
-          <LogOut className="h-4 w-4" />
-          <span className="truncate group-data-[state=collapsed]/sidebar:hidden">Logout</span>
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span className={cn(
+            "truncate",
+            !isMobile && sidebarState === "collapsed" && "hidden"
+            )}>Logout</span>
         </Button>
       </SidebarFooter>
     </UiSidebar>

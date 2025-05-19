@@ -4,14 +4,14 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react" // PanelLeft removed
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader as UiSheetHeader, SheetTitle as UiSheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader as UiSheetHeader, SheetTitle as UiSheetTitle } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -24,7 +24,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state_v2"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3.5rem" 
+const SIDEBAR_WIDTH_ICON = "3.5rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContextValue = {
@@ -81,7 +81,7 @@ const SidebarProvider = React.forwardRef<
     });
 
     const open = openProp ?? _open
-    
+
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
         const openState = typeof value === "function" ? value(open) : value
@@ -144,7 +144,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar", // Changed from has-[[data-variant=sidebar-inset]]
               className
             )}
             ref={ref}
@@ -163,7 +163,7 @@ interface SidebarProps extends React.ComponentProps<"div"> {
     side?: "left" | "right"
     variant?: "sidebar" | "floating" | "inset"
     collapsible?: "offcanvas" | "icon" | "none"
-    sheetTitle?: string; 
+    sheetTitle?: string;
 }
 
 const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
@@ -172,7 +172,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
       side = "left",
       variant = "sidebar",
       collapsible = "icon",
-      sheetTitle, 
+      sheetTitle,
       className,
       children,
       ...props
@@ -196,7 +196,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         </div>
       )
     }
-    
+
     if (isMobile) {
       return (
         <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
@@ -208,7 +208,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
                 side={side}
             >
              {sheetTitle && (
-                <UiSheetHeader className="p-4 border-b"> 
+                <UiSheetHeader className="p-4 border-b">
                     <UiSheetTitle>{sheetTitle}</UiSheetTitle>
                 </UiSheetHeader>
              )}
@@ -222,7 +222,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
       <div
         ref={ref}
         className={cn(
-            "group/sidebar peer hidden md:block text-sidebar-foreground", 
+            "group/sidebar peer hidden md:block text-sidebar-foreground",
             side === "left" ? "pr-[var(--sidebar-content-offset,0px)]" : "pl-[var(--sidebar-content-offset,0px)]",
             className
         )}
@@ -231,8 +231,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         data-variant={variant}
         data-side={side}
         style={{
-            "--sidebar-content-offset": (variant === "sidebar" && collapsible !== "offcanvas") ? 
-                                           (open ? "var(--sidebar-width)" : "var(--sidebar-width-icon)") : 
+            "--sidebar-content-offset": (variant === "sidebar" && collapsible !== "offcanvas") ?
+                                           (open ? "var(--sidebar-width)" : "var(--sidebar-width-icon)") :
                                            "0px",
         } as React.CSSProperties}
       >
@@ -244,9 +244,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
             side === "left" ? "left-0" : "right-0",
             variant === "floating" || variant === "inset" ? "p-2" : "",
             (variant === "floating" || variant === "inset") && (open ? "" : "!w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_)]"),
-            className
+            // className // This className was on the outer div, moving specific sidebar styling to inner div
           )}
-          {...props}
+          {...props} // Props are for the outer div, not the inner one for styling
         >
           <div
             data-sidebar="sidebar"
@@ -256,6 +256,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
                 (variant === "sidebar" && side === "right") && "border-l border-sidebar-border",
                 variant === "floating" && "rounded-lg border border-sidebar-border shadow-md",
                 variant === "inset" && "rounded-lg border border-sidebar-border",
+                className // Apply className here for actual sidebar styling
             )}
           >
             {children}
@@ -551,7 +552,7 @@ const sidebarMenuButtonVariants = cva(
     "p-2",
 
     // Collapsed state for icon view:
-    "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-8", 
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-8",
     "group-data-[collapsible=icon]:group-data-[state=collapsed]:p-0",
     "group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center",
     "group-data-[collapsible=icon]:group-data-[state=collapsed]:[&>span:last-child]:hidden"
@@ -563,7 +564,7 @@ const sidebarMenuButtonVariants = cva(
         outline:
           "bg-transparent border border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:border-sidebar-accent",
       },
-      size: { 
+      size: {
         default: "h-8 text-sm",
         sm: "h-7 text-xs",
         lg: "h-10 text-base",
@@ -609,7 +610,7 @@ const SidebarMenuButton = React.forwardRef<
         className={cn(sidebarMenuButtonVariants({ variant, size, className }))}
         {...props}
       >
-        {children} 
+        {children}
       </Comp>
     );
 
@@ -625,7 +626,7 @@ const SidebarMenuButton = React.forwardRef<
         <TooltipContent
           side="right"
           align="center"
-          hidden={sidebarState !== "collapsed" || isMobile} 
+          hidden={sidebarState !== "collapsed" || isMobile}
           {...tooltipProps}
         />
       </Tooltip>
