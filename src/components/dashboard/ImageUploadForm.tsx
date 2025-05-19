@@ -25,10 +25,10 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 5 * 1024 * 1024) { // 5MB limit
+      if (selectedFile.size > 20 * 1024 * 1024) { // 20MB limit
         toast({
           title: "File too large",
-          description: "Please upload an image smaller than 5MB.",
+          description: "Please upload an image smaller than 20MB.",
           variant: "destructive",
         });
         setFile(null);
