@@ -5,12 +5,11 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { generateImageTags, type GenerateImageTagsInput } from '@/ai/flows/generate-image-tags';
 import type { ImageItem } from '@/types';
-import { UploadCloud, Loader2, Tag, DollarSign } from 'lucide-react';
+import { UploadCloud, Loader2, Tag } from 'lucide-react';
 import Image from 'next/image';
 
 interface ImageUploadFormProps {
@@ -20,7 +19,6 @@ interface ImageUploadFormProps {
 export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [price, setPrice] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
@@ -61,15 +59,6 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
       return;
     }
 
-    if (!price.trim()) {
-      toast({
-        title: "Price required",
-        description: "Please enter a price for the image.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsProcessing(true);
     try {
       const aiInput: GenerateImageTagsInput = { photoDataUri: preview };
@@ -79,19 +68,18 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
         id: crypto.randomUUID(),
         dataUri: preview,
         name: file.name,
-        price: price,
+        price: "Not set", // Price is initially not set
         tags: aiOutput.tags,
         uploadedAt: new Date(),
       };
       onImageUploaded(newImageItem);
       toast({
         title: "Image Uploaded",
-        description: `${file.name} has been uploaded and tagged successfully.`,
+        description: `${file.name} has been uploaded and tagged successfully. Price can be set from the image card.`,
       });
       // Reset form
       setFile(null);
       setPreview(null);
-      setPrice('');
       (event.target as HTMLFormElement).reset();
 
     } catch (error) {
@@ -113,7 +101,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
           <UploadCloud className="mr-3 h-7 w-7 text-primary" />
           Upload New Image
         </CardTitle>
-        <CardDescription>Add an image, set its price, and let AI generate relevant tags.</CardDescription>
+        <CardDescription>Add an image and let AI generate relevant tags. Price can be set later.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -133,20 +121,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
               </div>
             )}
           </div>
-          <div>
-            <Label htmlFor="price" className="flex items-center mb-1">
-              <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
-              Price
-            </Label>
-            <Input
-              id="price"
-              type="text" // Using text to allow for currency symbols or ranges, though number might be stricter
-              placeholder="e.g., $19.99 or 25"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
-            />
-          </div>
+          
           <Button type="submit" className="w-full text-base py-3" disabled={isProcessing || !file}>
             {isProcessing ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -160,3 +135,4 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
     </Card>
   );
 }
+

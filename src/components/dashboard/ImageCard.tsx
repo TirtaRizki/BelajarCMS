@@ -4,15 +4,19 @@
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import type { ImageItem } from '@/types';
-import { DollarSign, Tag, CalendarDays } from 'lucide-react';
+import { DollarSign, Tag, CalendarDays, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ImageCardProps {
   image: ImageItem;
+  onEditPrice: (image: ImageItem) => void;
 }
 
-export function ImageCard({ image }: ImageCardProps) {
+export function ImageCard({ image, onEditPrice }: ImageCardProps) {
+  const isPriceSet = image.price && image.price !== "Not set";
+
   return (
     <Card className="overflow-hidden shadow-lg transition-all hover:shadow-xl h-full flex flex-col">
       <CardHeader className="p-0">
@@ -28,10 +32,22 @@ export function ImageCard({ image }: ImageCardProps) {
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <CardTitle className="text-lg mb-1 truncate" title={image.name}>{image.name}</CardTitle>
-        <div className="flex items-center text-primary font-semibold text-xl mb-2">
-          <DollarSign className="mr-1 h-5 w-5" />
-          {image.price}
+        
+        <div className="flex items-center justify-between mb-2">
+          {isPriceSet ? (
+            <div className="flex items-center text-primary font-semibold text-xl">
+              <DollarSign className="mr-1 h-5 w-5" />
+              {image.price}
+            </div>
+          ) : (
+            <p className="text-muted-foreground italic">Price not set</p>
+          )}
+           <Button variant="outline" size="sm" onClick={() => onEditPrice(image)} className="gap-1">
+            <Pencil className="h-3 w-3" />
+            {isPriceSet ? 'Edit Price' : 'Set Price'}
+          </Button>
         </div>
+
         <div className="mb-3">
           <div className="flex items-center text-sm text-muted-foreground mb-1">
             <Tag className="mr-2 h-4 w-4" />
@@ -58,3 +74,4 @@ export function ImageCard({ image }: ImageCardProps) {
     </Card>
   );
 }
+
