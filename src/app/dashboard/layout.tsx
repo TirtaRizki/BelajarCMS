@@ -44,7 +44,7 @@ export default function DashboardLayout({
   return (
     <SidebarProvider defaultOpen={true}>
       <Sidebar />
-      <SidebarInset className="bg-muted/40">
+      <SidebarInset className="bg-background"> {/* Changed from bg-muted/40 */}
         <AppHeader />
         <main className="flex-1 p-4 sm:p-6 md:p-8">
           {children}
