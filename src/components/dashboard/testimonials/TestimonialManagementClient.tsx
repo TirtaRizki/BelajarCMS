@@ -3,9 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import type { TestimonialItem } from '@/types';
-import { TestimonialForm } from './TestimonialForm';
-import { TestimonialCard } from './TestimonialCard';
-import { EditTestimonialModal } from './EditTestimonialModal';
+import { TestimonialForm } from '../TestimonialForm'; // Corrected import path
+import { TestimonialCard } from '../TestimonialCard'; // Corrected import path
+import { EditTestimonialModal } from '../EditTestimonialModal'; // Corrected import path
 import { MessageSquareIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
