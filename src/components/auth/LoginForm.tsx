@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn, Loader2, AlertTriangle, UserPlus } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -37,36 +38,6 @@ export function LoginForm() {
         variant: "destructive",
       });
     }
-  };
-
-  const handleForgotPassword = () => {
-    toast({
-      title: "Forgot Password",
-      description: "Password recovery is not implemented in this demo. In a real app, instructions would be sent to your email.",
-      duration: 5000,
-      variant: "default", // Use 'default' or remove for standard toast
-      action: ( // Optional: Add an icon to the toast
-        <div className="flex items-center">
-          <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
-          <span>Demo Feature</span>
-        </div>
-      )
-    });
-  };
-
-  const handleCreateAccount = () => {
-    toast({
-      title: "Create Account",
-      description: "Account creation is not implemented in this demo. In a real app, this would lead to a sign-up page.",
-      duration: 5000,
-      variant: "default",
-      action: (
-        <div className="flex items-center">
-          <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
-          <span>Demo Feature</span>
-        </div>
-      )
-    });
   };
 
   return (
@@ -97,14 +68,15 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Button
-                type="button"
-                variant="link"
-                className="px-0 text-sm h-auto text-primary hover:text-primary/80"
-                onClick={handleForgotPassword}
-              >
-                Forgot password?
-              </Button>
+              <Link href="/forgot-password" passHref legacyBehavior>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0 text-sm h-auto text-primary hover:text-primary/80"
+                >
+                  Forgot password?
+                </Button>
+              </Link>
             </div>
             <Input
               id="password"
@@ -132,14 +104,15 @@ export function LoginForm() {
         </p>
         <div className="text-muted-foreground">
           Don't have an account?{' '}
-          <Button
-            type="button"
-            variant="link"
-            className="px-0 text-sm h-auto font-semibold text-primary hover:text-primary/80"
-            onClick={handleCreateAccount}
-          >
-            Sign Up
-          </Button>
+          <Link href="/signup" passHref legacyBehavior>
+            <Button
+              type="button"
+              variant="link"
+              className="px-0 text-sm h-auto font-semibold text-primary hover:text-primary/80"
+            >
+              Sign Up
+            </Button>
+          </Link>
         </div>
       </CardFooter>
     </Card>
