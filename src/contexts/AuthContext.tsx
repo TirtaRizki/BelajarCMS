@@ -19,6 +19,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper to extract a string message from the error
+const getErrorMessage = (error: ServerActionResponse['error'], defaultMessage: string): string => {
+    if (!error) return defaultMessage;
+    if (typeof error === 'string') return error;
+    // If it's an object (like Zod errors), attempt to get the first message from the first field
+    const firstErrorKey = Object.keys(error)[0];
+    if (firstErrorKey && Array.isArray(error[firstErrorKey]) && error[firstErrorKey].length > 0) {
+        return error[firstErrorKey][0];
+    }
+    return defaultMessage;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,15 +41,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkSession = async () => {
       setIsLoading(true);
       setAuthError(null);
-      // In a real app with HttpOnly cookie sessions, this might not be needed,
-      // or you'd have an API endpoint to verify the session.
-      // For now, we assume no client-side token implies no session.
-      // We could try to fetch based on a stored user ID if we wanted to persist mock session client-side.
-      const response: ServerActionResponse<User | null> = await fetchUserProfile(); // This will return null as no ID is passed.
-      if (response.success && response.data) {
-        setUser(response.data);
+      try {
+        const response = await fetchUserProfile();
+        if (response.success && response.data) {
+          setUser(response.data);
+        } else {
+          setUser(null);
+          if (!response.success) {
+            // console.error("AuthContext: Error fetching user profile on mount:", response.error);
+            // Optionally set an authError here if it's critical for UI, though typically silent failure is okay
+          }
+        }
+      } catch (e) {
+        // console.error("AuthContext: Exception during checkSession:", e);
+        setUser(null);
+        // setAuthError("Failed to initialize session due to an unexpected error.");
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     checkSession();
   }, []);
@@ -49,19 +70,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await loginAction(username, pass);
       if (response.success && response.data) {
         setUser(response.data);
-        setIsLoading(false);
         return true;
       } else {
-        setAuthError(response.error || "Login failed. Please check your credentials.");
-        setIsLoading(false);
+        setAuthError(getErrorMessage(response.error, "Login failed. Please check your credentials."));
+        setUser(null);
         return false;
       }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      setAuthError(error.message || "An unexpected error occurred during login.");
+    } catch (e) {
+      // console.error("AuthContext: Exception during login:", e);
+      setAuthError("An unexpected error occurred during login.");
       setUser(null);
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -70,13 +91,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthError(null);
     try {
       await logoutAction();
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Handle logout error if necessary
+    } catch (e) {
+      // console.error("AuthContext: Exception during logout:", e);
+      // Error during logout is usually not critical to user, but log it.
+    } finally {
+      setUser(null);
+      setIsLoading(false);
+      router.push('/login');
     }
-    setUser(null);
-    setIsLoading(false);
-    router.push('/login');
   }, [router]);
 
   const updateUserContext = useCallback(async (updatedData: Partial<Pick<User, 'displayName' | 'email' | 'role'>>): Promise<User | null> => {
@@ -90,18 +112,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await updateUserProfileAction(user.id, updatedData);
       if (response.success && response.data) {
         setUser(response.data);
-        setIsLoading(false);
         return response.data;
       } else {
-        setAuthError(response.error || "Failed to update profile.");
-        setIsLoading(false);
-        return null;
+        setAuthError(getErrorMessage(response.error, "Failed to update profile."));
+        return null; 
       }
-    } catch (error: any) {
-      console.error("Profile update error:", error);
-      setAuthError(error.message || "Failed to update profile.");
+    } catch (e) {
+      // console.error("AuthContext: Exception during profile update:", e);
+      setAuthError("An unexpected error occurred while updating profile.");
+      return null;
+    } finally {
       setIsLoading(false);
-      return user; // Return current user state on failure to avoid UI thinking it's null
     }
   }, [user]);
   
