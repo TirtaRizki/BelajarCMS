@@ -12,12 +12,12 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
+  SheetTitle, // Import SheetTitle
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LayoutDashboard, Image, MessageSquare, Newspaper, FileText, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { LayoutDashboard, Image, MessageSquare, Newspaper, FileText, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-// Removed SheetTitle import from here, as it's handled by ui/sidebar.tsx now
 
 const menuItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -25,6 +25,7 @@ const menuItems = [
   { href: '/dashboard/testimonials', label: 'Testimonials', icon: MessageSquare },
   { href: '/dashboard/news', label: 'News (Berita)', icon: Newspaper },
   { href: '/dashboard/articles', label: 'Articles (Konten)', icon: FileText },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { type: 'separator' },
   { href: '/dashboard/profile', label: 'User Profile', icon: User },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
@@ -33,21 +34,20 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { setOpen, open } = useSidebar(); // Removed 'state' as it's derived from 'open' or handled internally
+  const { setOpen, open } = useSidebar();
 
   return (
     <UiSidebar
       variant="sidebar"
       collapsible="icon"
       className="border-r bg-card text-card-foreground"
-      sheetTitle="Askhajaya Menu" // Pass the title for the mobile sheet view
+      sheetTitle="Askhajaya Menu" 
     >
       <UiSidebarHeader className="p-2 flex justify-between items-center">
         <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
-          {/* The visual title text, not using SheetTitle here anymore */}
           <span className="text-lg font-semibold">Askhajaya</span>
         </Link>
         <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">

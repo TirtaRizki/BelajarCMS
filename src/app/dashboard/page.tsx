@@ -108,11 +108,10 @@ export default function DashboardOverviewPage() {
               description="Configure application preferences."
             />
              <DashboardLinkCard
-              href="#"
+              href="/dashboard/analytics"
               icon={BarChart3}
-              title="Analytics (Placeholder)"
-              description="View application usage statistics."
-              disabled
+              title="Analytics"
+              description="View application content statistics."
             />
           </div>
         </CardContent>
