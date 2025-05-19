@@ -91,9 +91,6 @@ export function LoginForm() {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center text-sm space-y-2 pt-4">
-        <p className="text-muted-foreground">
-          Demo: any username/password will work.
-        </p>
         {/* Removed Sign Up link */}
       </CardFooter>
     </Card>
