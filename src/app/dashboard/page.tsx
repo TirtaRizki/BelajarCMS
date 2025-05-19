@@ -85,7 +85,7 @@ interface DashboardLinkCardProps {
 
 function DashboardLinkCard({ href, icon: Icon, title, description, disabled }: DashboardLinkCardProps) {
   return (
-    <Link href={href} passHref legacyBehavior={disabled}>
+    <Link href={href} passHref legacyBehavior={true}>
       <a className={`block p-1 ${disabled ? 'pointer-events-none' : ''}`}>
         <Card className={`hover:shadow-md transition-shadow h-full ${disabled ? 'opacity-50 bg-muted' : ''}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -113,4 +113,3 @@ function StatCard({ title, value }: StatCardProps) {
     </Card>
   )
 }
-
