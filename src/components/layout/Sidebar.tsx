@@ -4,8 +4,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Sidebar as UiSidebar,
-  SidebarHeader,
+  Sidebar as UiSidebar, // Renamed to UiSidebar to avoid conflict
+  SidebarHeader as UiSidebarHeader, // Renamed to UiSidebarHeader
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LayoutDashboard, Image, MessageSquare, Newspaper, FileText, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { SheetTitle } from '@/components/ui/sheet'; // Added import for SheetTitle
+// Removed SheetTitle import from here, as it's handled by ui/sidebar.tsx now
 
 const menuItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -33,27 +33,27 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { state, setOpen, open } = useSidebar();
+  const { setOpen, open } = useSidebar(); // Removed 'state' as it's derived from 'open' or handled internally
 
   return (
     <UiSidebar
       variant="sidebar"
       collapsible="icon"
       className="border-r bg-card text-card-foreground"
+      sheetTitle="Askhajaya Menu" // Pass the title for the mobile sheet view
     >
-      <SidebarHeader className="p-2 flex justify-between items-center">
+      <UiSidebarHeader className="p-2 flex justify-between items-center">
         <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
-          <SheetTitle asChild>
-            <span className="text-lg font-semibold">Askhajaya</span>
-          </SheetTitle>
+          {/* The visual title text, not using SheetTitle here anymore */}
+          <span className="text-lg font-semibold">Askhajaya</span>
         </Link>
         <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">
             {open ? <PanelLeftClose /> : <PanelLeftOpen />}
         </Button>
-      </SidebarHeader>
+      </UiSidebarHeader>
       <ScrollArea className="flex-1">
         <SidebarContent className="p-2">
           <SidebarMenu>
