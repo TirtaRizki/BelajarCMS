@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LayoutDashboard, Image, MessageSquare, Newspaper, FileText, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { SheetTitle } from '@/components/ui/sheet'; // Added import for SheetTitle
 
 const menuItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
@@ -45,7 +46,9 @@ export function Sidebar() {
            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
-          <span className="text-lg font-semibold">Askhajaya</span>
+          <SheetTitle asChild>
+            <span className="text-lg font-semibold">Askhajaya</span>
+          </SheetTitle>
         </Link>
         <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">
             {open ? <PanelLeftClose /> : <PanelLeftOpen />}
