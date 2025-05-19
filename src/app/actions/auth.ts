@@ -10,7 +10,7 @@ import type { User, ServerActionResponse } from '@/types';
 export async function loginAction(username: string, pass: string): Promise<ServerActionResponse<User>> {
   console.log('Server Action: loginAction attempt for', username);
   // Simulate database call and password check
-  await new Promise(resolve => setTimeout(resolve, 700));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
 
   if (username.trim() !== '' && pass.trim() !== '') {
     // Mock successful login
@@ -34,7 +34,7 @@ export async function loginAction(username: string, pass: string): Promise<Serve
 export async function fetchUserProfile(userId?: string): Promise<ServerActionResponse<User | null>> {
   console.log('Server Action: fetchUserProfile attempt for userId:', userId);
   // Simulate fetching user based on session (if userId is not provided) or by ID
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
 
   // For this placeholder, we'll assume no persistent session without a real backend token.
   // If a userId is passed (e.g. from a mock context), we can return a mock user.
@@ -59,7 +59,7 @@ export async function updateUserProfileAction(
   updates: Partial<Pick<User, 'displayName' | 'email' | 'role'>>
 ): Promise<ServerActionResponse<User>> {
   console.log(`Server Action: updateUserProfileAction for user ${userId} with data:`, updates);
-  await new Promise(resolve => setTimeout(resolve, 600));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
 
   // Mock successful update
   const mockUpdatedUser: User = {
@@ -77,8 +77,9 @@ export async function updateUserProfileAction(
 
 export async function logoutAction(): Promise<ServerActionResponse> {
   console.log('Server Action: logoutAction attempt');
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
   // In a real app, you would invalidate the session here
   console.log('Server Action: logout successful');
   return { success: true };
 }
+
