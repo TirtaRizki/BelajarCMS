@@ -2,92 +2,77 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { Moon, Sun, Laptop } from 'lucide-react'; // Laptop for System theme
+import { Moon, Sun, Laptop } from 'lucide-react';
 
-const THEME_STORAGE_KEY = 'nextadminlite_theme';
-
-type Theme = 'light' | 'dark' | 'system';
+// Theme type matches next-themes: 'light', 'dark', 'system'
+type ThemeValue = string | undefined;
 
 export function ThemeSwitcher() {
-  const [theme, setTheme] = useState<Theme>('system'); // Default to system
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
+  // useEffect only runs on the client, so now we can safely show the UI
   useEffect(() => {
-    // Load theme from localStorage on initial client-side render
-    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    if (storedTheme) {
-      setTheme(storedTheme);
-      applyTheme(storedTheme);
-    } else {
-      // If no stored theme, apply system and listen for changes
-      applyTheme('system');
-    }
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      // Only re-apply if current theme is 'system'
-      const currentTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null || 'system';
-      if (currentTheme === 'system') {
-        applyTheme('system');
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    setMounted(true);
   }, []);
 
-  const applyTheme = (selectedTheme: Theme) => {
-    document.documentElement.classList.remove('light', 'dark');
-    if (selectedTheme === 'light') {
-      document.documentElement.classList.add('light');
-    } else if (selectedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else { // System theme
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.add('light');
-      }
-    }
-  };
+  if (!mounted) {
+    // Render a placeholder or null to avoid hydration mismatch,
+    // as theme state might not be available on initial server render.
+    // This also helps prevent FOUC by not rendering the switcher until client-side.
+    return (
+      <div className="flex items-center space-x-2 rounded-lg bg-muted p-1 w-fit h-[40px]">
+        <Button variant="ghost" size="sm" className="rounded-md px-3 py-1.5" disabled>
+          <Sun className="mr-2 h-4 w-4" /> Light
+        </Button>
+        <Button variant="ghost" size="sm" className="rounded-md px-3 py-1.5" disabled>
+          <Moon className="mr-2 h-4 w-4" /> Dark
+        </Button>
+        <Button variant="ghost" size="sm" className="rounded-md px-3 py-1.5" disabled>
+          <Laptop className="mr-2 h-4 w-4" /> System
+        </Button>
+      </div>
+    );
+  }
 
-  const handleThemeChange = (newTheme: Theme) => {
-    setTheme(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-    applyTheme(newTheme);
-  };
+  // Determine current effective theme for UI state, defaulting to system if theme is undefined
+  const currentUiTheme: ThemeValue = theme || 'system';
 
   return (
     <div className="flex items-center space-x-2 rounded-lg bg-muted p-1 w-fit">
       <Button
-        variant={theme === 'light' ? 'default' : 'ghost'}
+        variant={currentUiTheme === 'light' ? 'default' : 'ghost'}
         size="sm"
-        onClick={() => handleThemeChange('light')}
+        onClick={() => setTheme('light')}
         className="rounded-md px-3 py-1.5"
-        aria-pressed={theme === 'light'}
+        aria-pressed={currentUiTheme === 'light'}
       >
         <Sun className="mr-2 h-4 w-4" />
         Light
       </Button>
       <Button
-        variant={theme === 'dark' ? 'default' : 'ghost'}
+        variant={currentUiTheme === 'dark' ? 'default' : 'ghost'}
         size="sm"
-        onClick={() => handleThemeChange('dark')}
+        onClick={() => setTheme('dark')}
         className="rounded-md px-3 py-1.5"
-        aria-pressed={theme === 'dark'}
+        aria-pressed={currentUiTheme === 'dark'}
       >
         <Moon className="mr-2 h-4 w-4" />
         Dark
       </Button>
       <Button
-        variant={theme === 'system' ? 'default' : 'ghost'}
+        variant={currentUiTheme === 'system' ? 'default' : 'ghost'}
         size="sm"
-        onClick={() => handleThemeChange('system')}
+        onClick={() => setTheme('system')}
         className="rounded-md px-3 py-1.5"
-        aria-pressed={theme === 'system'}
+        aria-pressed={currentUiTheme === 'system'}
       >
         <Laptop className="mr-2 h-4 w-4" />
-        System
+        System (Currently: {resolvedTheme === 'dark' ? 
+            <Moon className="ml-1.5 h-3 w-3 inline-block" /> : 
+            <Sun className="ml-1.5 h-3 w-3 inline-block" />})
       </Button>
     </div>
   );

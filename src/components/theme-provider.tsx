@@ -6,16 +6,6 @@ import { ThemeProvider as NextThemesProvider } from "next-themes"
 import type { ThemeProviderProps } from "next-themes/dist/types"
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  const [isClient, setIsClient] = React.useState(false)
-
-  React.useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  // To prevent hydration mismatch, only render the provider on the client
-  if (!isClient) {
-    return <>{children}</>; // Or a loading skeleton if preferred
-  }
-  
+  // Removed the isClient check to allow next-themes to manage FOUC
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>
 }
