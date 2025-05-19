@@ -12,11 +12,10 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  SheetTitle as UiSheetTitle,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LayoutDashboard, Image, MessageSquare, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Image, MessageSquare, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen, BarChart3, Newspaper, FileText } from 'lucide-react'; // Added Newspaper, FileText
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +23,8 @@ const menuItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/images', label: 'Image Management', icon: Image },
   { href: '/dashboard/testimonials', label: 'Testimonials', icon: MessageSquare },
+  { href: '/dashboard/news', label: 'News Management', icon: Newspaper },
+  { href: '/dashboard/articles', label: 'Article Management', icon: FileText },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { type: 'separator' as const },
   { href: '/dashboard/profile', label: 'User Profile', icon: User },
@@ -33,7 +34,7 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { setOpenMobile, openMobile, isMobile, state: sidebarState, setOpen, open } = useSidebar(); 
+  const { setOpenMobile, openMobile, isMobile, state: sidebarState } = useSidebar();
 
   return (
     <UiSidebar
@@ -45,7 +46,7 @@ export function Sidebar() {
       <UiSidebarHeader className="p-2 flex justify-between items-center">
         <Link href="/dashboard" className={cn(
             "flex items-center gap-2",
-            isMobile && "hidden", 
+            isMobile && "hidden",
             "group-data-[collapsible=icon]:group-data-[state=expanded]:inline-flex",
             "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-full group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center"
             )}>
@@ -54,7 +55,7 @@ export function Sidebar() {
           </svg>
           <span className={cn(
               "text-lg font-semibold",
-              "group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden" 
+              "group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden"
             )}>Askhajaya</span>
         </Link>
 
@@ -100,7 +101,7 @@ export function Sidebar() {
              (!isMobile && sidebarState === "collapsed") && "w-8 h-8 p-0 justify-center"
           )}
           onClick={logout}
-          title="Logout" 
+          title="Logout"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span className={cn(

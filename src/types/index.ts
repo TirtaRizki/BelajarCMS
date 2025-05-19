@@ -27,9 +27,31 @@ export interface TestimonialItem {
   // userId?: string; // Optional: if testimonials are associated with users
 }
 
+export interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+  category: string;
+  publishedAt: Date;
+  imageUrl?: string; // Optional image for the news item
+}
+
+export interface ArticleItem {
+  id: string;
+  title: string;
+  content: string; // Could be markdown or rich text
+  author: string;
+  category: string;
+  tags?: string[];
+  publishedAt: Date;
+  imageUrl?: string; // Optional image for the article
+}
+
 // Generic type for server action responses
 export type ServerActionResponse<T = null> = {
   success: boolean;
   data?: T;
   error?: string | { [key: string]: string[] } | null; // Can be a simple string or Zod-like error object
 };
+
