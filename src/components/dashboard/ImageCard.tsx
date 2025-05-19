@@ -1,12 +1,11 @@
 
 "use client";
 
-import NextImage from 'next/image'; // Renamed to avoid conflict with lucide-react Image icon
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import NextImage from 'next/image'; 
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { ImageItem } from '@/types';
-import { DollarSign, Tag, CalendarDays, Pencil, Trash2 } from 'lucide-react';
+import { CalendarDays, Pencil, Trash2 } from 'lucide-react'; // DollarSign and Tag removed
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -27,6 +26,13 @@ interface ImageCardProps {
   onDeleteImage: (imageId: string) => void;
 }
 
+function formatPrice(price: string) {
+  if (price === "Not set" || price === null || price === undefined) return "Price not set";
+  const number = parseFloat(price);
+  if (isNaN(number)) return "Invalid price";
+  return `Rp ${number.toLocaleString('id-ID')}`;
+}
+
 export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps) {
   const isPriceSet = image.price && image.price !== "Not set";
 
@@ -44,7 +50,6 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
             alt={image.name} 
             layout="fill" 
             objectFit="cover"
-            // data-ai-hint removed
           />
         </div>
       </CardHeader>
@@ -53,9 +58,8 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
         
         <div className="flex items-center justify-between mb-2">
           {isPriceSet ? (
-            <div className="flex items-center text-primary font-semibold text-xl">
-              <DollarSign className="mr-1 h-5 w-5" />
-              {image.price}
+            <div className="text-primary font-semibold text-xl">
+              {formatPrice(image.price)}
             </div>
           ) : (
             <p className="text-muted-foreground italic">Price not set</p>
@@ -66,22 +70,7 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
           </Button>
         </div>
 
-        <div className="mb-3">
-          <div className="flex items-center text-sm text-muted-foreground mb-1">
-            <Tag className="mr-2 h-4 w-4" />
-            Tags:
-          </div>
-          {image.tags && image.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {image.tags.slice(0, 5).map((tag) => (
-                <Badge key={tag} variant="secondary" className="font-normal">{tag}</Badge>
-              ))}
-              {image.tags.length > 5 && <Badge variant="outline">+{image.tags.length - 5} more</Badge>}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground italic">No tags available.</p>
-          )}
-        </div>
+        {/* Tags section removed */}
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 border-t flex justify-between items-center">
         <div className="flex items-center text-xs text-muted-foreground">

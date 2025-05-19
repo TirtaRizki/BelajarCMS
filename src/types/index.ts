@@ -11,8 +11,7 @@ export interface ImageItem {
   id: string;
   dataUri: string;
   name: string;
-  price: string; // Price can be "Not set" or a monetary value e.g., "$19.99"
-  tags: string[]; // Will default to empty if AI is removed
+  price: string; // Price can be "Not set" or a numeric string value e.g., "150000"
   uploadedAt: Date;
 }
 

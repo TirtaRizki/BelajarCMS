@@ -65,7 +65,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
         dataUri: preview,
         name: file.name,
         price: "Not set", 
-        tags: [],
+        // tags: [], // Tags removed
         uploadedAt: new Date(),
       };
       onImageUploaded(newImageItem);
@@ -96,7 +96,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
           <UploadCloud className="mr-3 h-7 w-7 text-primary" />
           Upload New Image
         </CardTitle>
-        <CardDescription>Add an image (max 20MB). Price can be set later. Tags are no longer AI-generated.</CardDescription>
+        <CardDescription>Add an image (max 20MB). Price can be set later.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">

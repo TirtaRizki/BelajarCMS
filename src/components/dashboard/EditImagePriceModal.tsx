@@ -15,7 +15,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { DollarSign, Loader2, XCircle } from 'lucide-react';
+import { Loader2, XCircle } from 'lucide-react'; // DollarSign removed
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -51,7 +51,8 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
     event.preventDefault();
     if (!image) return;
 
-    const finalPrice = price.trim() === '' ? "Not set" : price.trim();
+    const numericPrice = price.trim().replace(/[^0-9]/g, ''); // Keep only numbers
+    const finalPrice = numericPrice === '' ? "Not set" : numericPrice;
     
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -60,7 +61,7 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
     onOpenChange(false);
     toast({
       title: "Price Updated",
-      description: `Price for ${image.name} has been updated to ${finalPrice === "Not set" ? "Not set" : finalPrice}.`,
+      description: `Price for ${image.name} has been updated to ${finalPrice === "Not set" ? "Not set" : `Rp ${Number(finalPrice).toLocaleString('id-ID')}`}.`,
     });
   };
 
@@ -85,25 +86,32 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
         <DialogHeader>
           <DialogTitle>Edit Price for {image.name}</DialogTitle>
           <DialogDescription>
-            Set or update the price for this image. Leave blank to mark as "Not set".
+            Set or update the price in IDR (e.g., 150000). Leave blank to mark as "Not set".
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div>
             <Label htmlFor="price" className="flex items-center mb-1">
-              <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
-              Price
+              <span className="mr-2 text-muted-foreground">Rp</span>
+              Price (IDR)
             </Label>
             <Input
               id="price"
-              type="text"
-              placeholder="e.g., $19.99 or 25"
+              type="text" 
+              inputMode="numeric"
+              placeholder="e.g., 150000"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Allow only numbers or empty string
+                if (/^\d*$/.test(value)) {
+                  setPrice(value);
+                }
+              }}
             />
           </div>
           <DialogFooter className="sm:justify-between">
-            {image.price !== "Not set" && price.trim() !== "" ? ( // Show remove only if a price is currently set
+            {image.price !== "Not set" && price.trim() !== "" ? ( 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="destructive" className="gap-1" disabled={isLoading}>

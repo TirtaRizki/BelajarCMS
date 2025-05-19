@@ -3,11 +3,11 @@
 
 import { useState, useEffect } from 'react';
 import type { ImageItem } from '@/types';
-import { ImageUploadForm } from '../ImageUploadForm'; // Corrected path
-import { ImageCard } from '../ImageCard'; // Corrected path
+import { ImageUploadForm } from '../ImageUploadForm'; 
+import { ImageCard } from '../ImageCard'; 
 import { EditImagePriceModal } from '../EditImagePriceModal';
-import { ImageIcon, Info, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ImageIcon, Loader2 } from 'lucide-react'; // Info removed
+// Alert components removed
 import { useToast } from '@/hooks/use-toast';
 
 const IMAGE_STORAGE_KEY = 'nextadminlite_images';
@@ -84,13 +84,7 @@ export function ImageManagementClient() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-6">
           <ImageUploadForm onImageUploaded={handleImageUploaded} />
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertTitle>Demo Information</AlertTitle>
-            <AlertDescription>
-              Uploaded data is stored in your browser's local storage and will persist on this device. No data is sent to a server.
-            </AlertDescription>
-          </Alert>
+          {/* Demo Information Alert removed */}
         </div>
         
         <div className="lg:col-span-2">
