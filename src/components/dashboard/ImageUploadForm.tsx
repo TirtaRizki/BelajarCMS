@@ -7,9 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-// import { generateImageTags, type GenerateImageTagsInput } from '@/ai/flows/generate-image-tags'; // AI removed
 import type { ImageItem } from '@/types';
-import { UploadCloud, Loader2 } from 'lucide-react'; // Tag icon removed
+import { UploadCloud, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 interface ImageUploadFormProps {
@@ -25,10 +24,10 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 20 * 1024 * 1024) { // 20MB limit
+      if (selectedFile.size > 500 * 1024) { // 500KB limit
         toast({
           title: "File too large",
-          description: "Please upload an image smaller than 20MB.",
+          description: "Please upload an image smaller than 500KB. Local storage capacity is limited.",
           variant: "destructive",
         });
         setFile(null);
@@ -61,16 +60,12 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
 
     setIsProcessing(true);
     try {
-      // AI Tag generation removed
-      // const aiInput: GenerateImageTagsInput = { photoDataUri: preview };
-      // const aiOutput = await generateImageTags(aiInput);
-
       const newImageItem: ImageItem = {
         id: crypto.randomUUID(),
         dataUri: preview,
         name: file.name,
         price: "Not set", 
-        tags: [], // Tags will be empty by default now
+        tags: [],
         uploadedAt: new Date(),
       };
       onImageUploaded(newImageItem);
@@ -101,7 +96,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
           <UploadCloud className="mr-3 h-7 w-7 text-primary" />
           Upload New Image
         </CardTitle>
-        <CardDescription>Add an image. Price can be set later. Tags are no longer AI-generated.</CardDescription>
+        <CardDescription>Add an image (max 500KB). Price can be set later. Tags are no longer AI-generated.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -126,7 +121,6 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
             {isProcessing ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
-              // Using UploadCloud icon instead of Tag for the button
               <UploadCloud className="mr-2 h-5 w-5" /> 
             )}
             {isProcessing ? 'Processing...' : 'Upload Image'}
