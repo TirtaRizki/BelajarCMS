@@ -33,7 +33,6 @@ export function TestimonialForm({ onTestimonialAdded }: TestimonialFormProps) {
     }
 
     setIsProcessing(true);
-    // Simulate processing
     await new Promise(resolve => setTimeout(resolve, 300));
 
     const newTestimonial: TestimonialItem = {

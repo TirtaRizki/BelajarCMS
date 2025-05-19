@@ -51,11 +51,9 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
     event.preventDefault();
     if (!image) return;
 
-    // Allow empty price string, which will be treated as "Not set" by the parent
     const finalPrice = price.trim() === '' ? "Not set" : price.trim();
     
     setIsLoading(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     onSave(image.id, finalPrice);
     setIsLoading(false);
@@ -105,7 +103,7 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
             />
           </div>
           <DialogFooter className="sm:justify-between">
-            {image.price !== "Not set" ? (
+            {image.price !== "Not set" && price.trim() !== "" ? ( // Show remove only if a price is currently set
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button type="button" variant="destructive" className="gap-1" disabled={isLoading}>
@@ -128,7 +126,7 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            ) : <div></div> /* Placeholder to maintain layout */}
+            ) : <div></div>}
             
             <div className="flex gap-2">
               <DialogClose asChild>

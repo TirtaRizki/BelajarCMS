@@ -1,7 +1,7 @@
 
 "use client";
 
-import Image from 'next/image';
+import NextImage from 'next/image'; // Renamed to avoid conflict with lucide-react Image icon
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
   const isPriceSet = image.price && image.price !== "Not set";
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); // Prevent card click or other parent events
+    e.stopPropagation(); 
     onDeleteImage(image.id);
   };
 
@@ -39,7 +39,7 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
     <Card className="overflow-hidden shadow-lg transition-all hover:shadow-xl h-full flex flex-col">
       <CardHeader className="p-0">
         <div className="relative w-full aspect-[16/10] bg-muted">
-          <Image 
+          <NextImage 
             src={image.dataUri} 
             alt={image.name} 
             layout="fill" 
@@ -73,7 +73,7 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
           </div>
           {image.tags.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {image.tags.slice(0, 5).map((tag) => ( // Show up to 5 tags
+              {image.tags.slice(0, 5).map((tag) => (
                 <Badge key={tag} variant="secondary" className="font-normal">{tag}</Badge>
               ))}
               {image.tags.length > 5 && <Badge variant="outline">+{image.tags.length - 5} more</Badge>}

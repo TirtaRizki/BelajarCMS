@@ -68,7 +68,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
         id: crypto.randomUUID(),
         dataUri: preview,
         name: file.name,
-        price: "Not set", // Price is initially not set
+        price: "Not set", 
         tags: aiOutput.tags,
         uploadedAt: new Date(),
       };
@@ -77,7 +77,6 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
         title: "Image Uploaded",
         description: `${file.name} has been uploaded and tagged successfully. Price can be set from the image card.`,
       });
-      // Reset form
       setFile(null);
       setPreview(null);
       (event.target as HTMLFormElement).reset();
@@ -135,4 +134,3 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
     </Card>
   );
 }
-

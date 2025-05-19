@@ -53,7 +53,6 @@ export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave
     }
     
     setIsLoading(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     onSave(testimonial.id, author, quote);
     setIsLoading(false);

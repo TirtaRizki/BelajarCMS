@@ -15,3 +15,21 @@ export interface TestimonialItem {
   createdAt: Date;
 }
 
+export interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl?: string; // Optional image URL for the news
+  category: string;
+  publishedAt: Date;
+}
+
+export interface ArticleItem {
+  id: string;
+  title: string;
+  body: string; // Main content of the article
+  author: string;
+  coverImageUrl?: string; // Optional cover image
+  createdAt: Date;
+  tags: string[]; // Tags for the article
+}

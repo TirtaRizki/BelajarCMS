@@ -40,8 +40,8 @@ export function TestimonialCard({ testimonial, onEditTestimonial, onDeleteTestim
                 <User className="mr-2 h-5 w-5 text-primary" />
                 <CardTitle className="text-lg">{testimonial.author}</CardTitle>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => onEditTestimonial(testimonial)} className="gap-1">
-                <Pencil className="h-3 w-3" />
+            <Button variant="ghost" size="icon" onClick={() => onEditTestimonial(testimonial)} className="p-1">
+                <Pencil className="h-4 w-4" />
             </Button>
         </div>
       </CardHeader>

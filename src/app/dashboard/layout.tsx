@@ -5,7 +5,9 @@ import type React from 'react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Header } from '@/components/layout/Header';
+import { AppHeader } from '@/components/layout/AppHeader'; // Renamed Header to AppHeader
+import { Sidebar } from '@/components/layout/Sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -31,8 +33,6 @@ export default function DashboardLayout({
   }
 
   if (!isAuthenticated) {
-     // This case should ideally be handled by the redirect,
-     // but as a fallback or during brief state transitions:
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -42,9 +42,14 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Header />
-      <main className="flex-1 p-4 sm:p-6 md:p-8">{children}</main>
-    </div>
+    <SidebarProvider defaultOpen={true}>
+      <Sidebar />
+      <SidebarInset className="bg-muted/40">
+        <AppHeader />
+        <main className="flex-1 p-4 sm:p-6 md:p-8">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
