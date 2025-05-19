@@ -2,16 +2,13 @@
 'use server';
 
 import type { ArticleItem, ServerActionResponse } from '@/types';
-// import prisma from '@/lib/prisma'; // Uncomment when Prisma schema is ready
+
+// let mockArticleStore: ArticleItem[] = [];
 
 export async function fetchArticlesAction(): Promise<ServerActionResponse<ArticleItem[]>> {
   console.log('Server Action: fetchArticlesAction');
   await new Promise(resolve => setTimeout(resolve, 500));
-  // TODO: Replace with actual Prisma logic
-  // const articles = await prisma.articleItem.findMany({
-  //   orderBy: { createdAt: 'desc' },
-  // });
-  // return { success: true, data: articles.map(article => ({...article, createdAt: new Date(article.createdAt), updatedAt: new Date(article.updatedAt)})) };
+  // return { success: true, data: mockArticleStore };
   return { success: true, data: [] };
 }
 
@@ -28,9 +25,7 @@ export async function addArticleAction(
     updatedAt: newArticle.updatedAt || new Date(),
   };
 
-  // TODO: Replace with actual Prisma logic
-  // const savedArticle = await prisma.articleItem.create({ data: articleToSave });
-  // return { success: true, data: {...savedArticle, createdAt: new Date(savedArticle.createdAt), updatedAt: new Date(savedArticle.updatedAt)} };
+  // mockArticleStore.unshift(articleToSave);
 
   console.log('Server Action: article added successfully for', newArticle.title);
   return { success: true, data: articleToSave };
@@ -43,13 +38,17 @@ export async function updateArticleAction(
   console.log('Server Action: updateArticleAction for ID', articleId);
   await new Promise(resolve => setTimeout(resolve, 600));
 
-  // TODO: Replace with actual Prisma logic
-  // const updatedArticle = await prisma.articleItem.update({
-  //   where: { id: articleId },
-  //   data: { ...updates, updatedAt: new Date() },
-  // });
-  // if (!updatedArticle) return { success: false, error: "Article not found." };
-  // return { success: true, data: {...updatedArticle, createdAt: new Date(updatedArticle.createdAt), updatedAt: new Date(updatedArticle.updatedAt)} };
+  // const articleIndex = mockArticleStore.findIndex(article => article.id === articleId);
+  // if (articleIndex === -1) {
+  //   return { success: false, error: "Article not found." };
+  // }
+  // mockArticleStore[articleIndex] = { 
+  //   ...mockArticleStore[articleIndex], 
+  //   ...updates, 
+  //   updatedAt: new Date(),
+  //   createdAt: new Date(mockArticleStore[articleIndex].createdAt) // ensure createdAt is Date
+  // };
+  // return { success: true, data: mockArticleStore[articleIndex] };
   
   const mockUpdatedArticle: ArticleItem = {
     id: articleId,
@@ -68,8 +67,11 @@ export async function deleteArticleAction(articleId: string): Promise<ServerActi
   console.log('Server Action: deleteArticleAction for ID', articleId);
   await new Promise(resolve => setTimeout(resolve, 400));
 
-  // TODO: Replace with actual Prisma logic
-  // await prisma.articleItem.delete({ where: { id: articleId } });
+  // const initialLength = mockArticleStore.length;
+  // mockArticleStore = mockArticleStore.filter(article => article.id !== articleId);
+  // if (mockArticleStore.length === initialLength) {
+  //    return { success: false, error: "Article not found." };
+  // }
 
   console.log('Server Action: article deletion successful for', articleId);
   return { success: true };

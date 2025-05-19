@@ -2,19 +2,13 @@
 'use server';
 
 import type { TestimonialItem, ServerActionResponse } from '@/types';
-// import prisma from '@/lib/prisma'; // Uncomment when Prisma schema is ready
 
-// Placeholder for user ID, in a real app this might come from session
-// const MOCK_USER_ID = 'mock-user-id';
+// let mockTestimonialStore: TestimonialItem[] = [];
 
 export async function fetchTestimonialsAction(): Promise<ServerActionResponse<TestimonialItem[]>> {
   console.log('Server Action: fetchTestimonialsAction');
   await new Promise(resolve => setTimeout(resolve, 400));
-  // TODO: Replace with actual Prisma logic
-  // const testimonials = await prisma.testimonial.findMany({
-  //   orderBy: { createdAt: 'desc' },
-  // });
-  // return { success: true, data: testimonials.map(t => ({...t, createdAt: new Date(t.createdAt)})) };
+  // return { success: true, data: mockTestimonialStore };
   return { success: true, data: [] };
 }
 
@@ -28,14 +22,9 @@ export async function addTestimonialAction(
     ...newTestimonial,
     id: crypto.randomUUID(),
     createdAt: newTestimonial.createdAt || new Date(),
-    // userId: MOCK_USER_ID, // Optional: associate with user
   };
 
-  // TODO: Replace with actual Prisma logic
-  // const savedTestimonial = await prisma.testimonial.create({
-  //   data: testimonialToSave,
-  // });
-  // return { success: true, data: {...savedTestimonial, createdAt: new Date(savedTestimonial.createdAt)} };
+  // mockTestimonialStore.unshift(testimonialToSave);
   
   console.log('Server Action: testimonial added successfully for', newTestimonial.author);
   return { success: true, data: testimonialToSave };
@@ -48,13 +37,12 @@ export async function updateTestimonialAction(
   console.log('Server Action: updateTestimonialAction for ID', testimonialId);
   await new Promise(resolve => setTimeout(resolve, 500));
 
-  // TODO: Replace with actual Prisma logic
-  // const updatedTestimonial = await prisma.testimonial.update({
-  //   where: { id: testimonialId /*, userId: MOCK_USER_ID */ }, // Ensure user can update
-  //   data: updates,
-  // });
-  // if (!updatedTestimonial) return { success: false, error: "Testimonial not found or not authorized."};
-  // return { success: true, data: {...updatedTestimonial, createdAt: new Date(updatedTestimonial.createdAt)} };
+  // const testimonialIndex = mockTestimonialStore.findIndex(t => t.id === testimonialId);
+  // if (testimonialIndex === -1) {
+  //   return { success: false, error: "Testimonial not found or not authorized."};
+  // }
+  // mockTestimonialStore[testimonialIndex] = { ...mockTestimonialStore[testimonialIndex], ...updates, createdAt: new Date(mockTestimonialStore[testimonialIndex].createdAt) };
+  // return { success: true, data: mockTestimonialStore[testimonialIndex] };
 
   const mockUpdatedTestimonial: TestimonialItem = {
     id: testimonialId,
@@ -69,11 +57,12 @@ export async function deleteTestimonialAction(testimonialId: string): Promise<Se
   console.log('Server Action: deleteTestimonialAction for ID', testimonialId);
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  // TODO: Replace with actual Prisma logic
-  // await prisma.testimonial.delete({
-  //   where: { id: testimonialId /*, userId: MOCK_USER_ID */ }, // Ensure user can delete
-  // });
-
+  // const initialLength = mockTestimonialStore.length;
+  // mockTestimonialStore = mockTestimonialStore.filter(t => t.id !== testimonialId);
+  // if (mockTestimonialStore.length === initialLength) {
+  //    return { success: false, error: "Testimonial not found." };
+  // }
+  
   console.log('Server Action: testimonial deletion successful for', testimonialId);
   return { success: true };
 }

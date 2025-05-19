@@ -2,23 +2,19 @@
 'use server';
 
 import type { ImageItem, ServerActionResponse } from '@/types';
-// import prisma from '@/lib/prisma'; // Uncomment when Prisma schema is ready
-// import { z } from 'zod'; // For input validation
+// import { z } from 'zod'; // For input validation if needed
 
 // Placeholder for user ID, in a real app this would come from the session
-const MOCK_USER_ID = 'mock-user-id';
+// const MOCK_USER_ID = 'mock-user-id';
+
+// In-memory store for demonstration purposes if not using a DB
+// let mockImageStore: ImageItem[] = [];
 
 export async function fetchImagesAction(): Promise<ServerActionResponse<ImageItem[]>> {
   console.log('Server Action: fetchImagesAction');
   await new Promise(resolve => setTimeout(resolve, 500));
-  // TODO: Replace with actual Prisma logic
-  // const images = await prisma.image.findMany({
-  //   where: { userId: MOCK_USER_ID }, // Or based on actual authenticated user
-  //   orderBy: { uploadedAt: 'desc' },
-  // });
-  // return { success: true, data: images.map(img => ({...img, uploadedAt: new Date(img.uploadedAt)})) };
-  
   // For now, return an empty array or some mock data if desired
+  // return { success: true, data: mockImageStore };
   return { success: true, data: [] };
 }
 
@@ -26,25 +22,14 @@ export async function uploadImageAction(newImage: Omit<ImageItem, 'id' | 'upload
   console.log('Server Action: uploadImageAction', newImage.name);
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  const imageToSave = {
+  const imageToSave: ImageItem = {
     ...newImage,
     id: crypto.randomUUID(),
     uploadedAt: newImage.uploadedAt || new Date(),
     // userId: MOCK_USER_ID, // Associate with user
   };
-
-  // TODO: Replace with actual Prisma logic
-  // const savedImage = await prisma.image.create({
-  //   data: {
-  //     id: imageToSave.id,
-  //     name: imageToSave.name,
-  //     dataUri: imageToSave.dataUri, // NB: Storing base64 in DB is often not ideal. Consider file storage.
-  //     price: imageToSave.price,
-  //     uploadedAt: imageToSave.uploadedAt,
-  //     // userId: imageToSave.userId,
-  //   },
-  // });
-  // return { success: true, data: {...savedImage, uploadedAt: new Date(savedImage.uploadedAt)} };
+  
+  // mockImageStore.unshift(imageToSave); // Add to mock store
 
   console.log('Server Action: image upload successful for', newImage.name);
   return { success: true, data: imageToSave };
@@ -54,13 +39,12 @@ export async function updateImagePriceAction(imageId: string, newPrice: string):
   console.log('Server Action: updateImagePriceAction for ID', imageId, 'to price', newPrice);
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  // TODO: Replace with actual Prisma logic
-  // const updatedImage = await prisma.image.update({
-  //   where: { id: imageId /* , userId: MOCK_USER_ID */ }, // Ensure user owns the image
-  //   data: { price: newPrice },
-  // });
-  // if (!updatedImage) return { success: false, error: "Image not found or not authorized." };
-  // return { success: true, data: {...updatedImage, uploadedAt: new Date(updatedImage.uploadedAt)} };
+  // const imageIndex = mockImageStore.findIndex(img => img.id === imageId);
+  // if (imageIndex === -1) {
+  //   return { success: false, error: "Image not found or not authorized." };
+  // }
+  // mockImageStore[imageIndex] = { ...mockImageStore[imageIndex], price: newPrice, uploadedAt: new Date(mockImageStore[imageIndex].uploadedAt) };
+  // return { success: true, data: mockImageStore[imageIndex] };
 
   // Mock update
   const mockUpdatedImage: ImageItem = {
@@ -77,12 +61,12 @@ export async function deleteImageAction(imageId: string): Promise<ServerActionRe
   console.log('Server Action: deleteImageAction for ID', imageId);
   await new Promise(resolve => setTimeout(resolve, 400));
 
-  // TODO: Replace with actual Prisma logic
-  // await prisma.image.delete({
-  //   where: { id: imageId /*, userId: MOCK_USER_ID */ }, // Ensure user owns the image
-  // });
-  // Catch errors if image not found, etc.
-
+  // const initialLength = mockImageStore.length;
+  // mockImageStore = mockImageStore.filter(img => img.id !== imageId);
+  // if (mockImageStore.length === initialLength) {
+  //    return { success: false, error: "Image not found." };
+  // }
+  
   console.log('Server Action: image deletion successful for', imageId);
   return { success: true };
 }

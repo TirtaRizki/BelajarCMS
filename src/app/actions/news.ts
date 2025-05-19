@@ -2,16 +2,13 @@
 'use server';
 
 import type { NewsItem, ServerActionResponse } from '@/types';
-// import prisma from '@/lib/prisma'; // Uncomment when Prisma schema is ready
+
+// let mockNewsStore: NewsItem[] = [];
 
 export async function fetchNewsItemsAction(): Promise<ServerActionResponse<NewsItem[]>> {
   console.log('Server Action: fetchNewsItemsAction');
   await new Promise(resolve => setTimeout(resolve, 450));
-  // TODO: Replace with actual Prisma logic
-  // const newsItems = await prisma.newsItem.findMany({
-  //   orderBy: { publishedAt: 'desc' },
-  // });
-  // return { success: true, data: newsItems.map(item => ({...item, publishedAt: new Date(item.publishedAt)})) };
+  // return { success: true, data: mockNewsStore };
   return { success: true, data: [] };
 }
 
@@ -27,9 +24,7 @@ export async function addNewsItemAction(
     publishedAt: newNewsItem.publishedAt || new Date(),
   };
 
-  // TODO: Replace with actual Prisma logic
-  // const savedNewsItem = await prisma.newsItem.create({ data: newsItemToSave });
-  // return { success: true, data: {...savedNewsItem, publishedAt: new Date(savedNewsItem.publishedAt)} };
+  // mockNewsStore.unshift(newsItemToSave);
   
   console.log('Server Action: news item added successfully for', newNewsItem.title);
   return { success: true, data: newsItemToSave };
@@ -42,13 +37,12 @@ export async function updateNewsItemAction(
   console.log('Server Action: updateNewsItemAction for ID', newsId);
   await new Promise(resolve => setTimeout(resolve, 550));
 
-  // TODO: Replace with actual Prisma logic
-  // const updatedNewsItem = await prisma.newsItem.update({
-  //   where: { id: newsId },
-  //   data: { ...updates, publishedAt: new Date() }, // Or preserve original publishedAt if not meant to change
-  // });
-  // if (!updatedNewsItem) return { success: false, error: "News item not found." };
-  // return { success: true, data: {...updatedNewsItem, publishedAt: new Date(updatedNewsItem.publishedAt)} };
+  // const newsIndex = mockNewsStore.findIndex(item => item.id === newsId);
+  // if (newsIndex === -1) {
+  //   return { success: false, error: "News item not found." };
+  // }
+  // mockNewsStore[newsIndex] = { ...mockNewsStore[newsIndex], ...updates, publishedAt: new Date(mockNewsStore[newsIndex].publishedAt) };
+  // return { success: true, data: mockNewsStore[newsIndex] };
   
   const mockUpdatedNewsItem: NewsItem = {
     id: newsId,
@@ -65,8 +59,11 @@ export async function deleteNewsItemAction(newsId: string): Promise<ServerAction
   console.log('Server Action: deleteNewsItemAction for ID', newsId);
   await new Promise(resolve => setTimeout(resolve, 350));
 
-  // TODO: Replace with actual Prisma logic
-  // await prisma.newsItem.delete({ where: { id: newsId } });
+  // const initialLength = mockNewsStore.length;
+  // mockNewsStore = mockNewsStore.filter(item => item.id !== newsId);
+  // if (mockNewsStore.length === initialLength) {
+  //    return { success: false, error: "News item not found." };
+  // }
   
   console.log('Server Action: news item deletion successful for', newsId);
   return { success: true };
