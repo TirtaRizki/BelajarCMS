@@ -1,55 +1,62 @@
-// src/ai/flows/generate-image-tags.ts
-'use server';
-
-/**
- * @fileOverview Image tag generation AI agent.
- *
- * - generateImageTags - A function that handles the image tag generation process.
- * - GenerateImageTagsInput - The input type for the generateImageTags function.
- * - GenerateImageTagsOutput - The return type for the generateImageTags function.
- */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-const GenerateImageTagsInputSchema = z.object({
-  photoDataUri: z
-    .string()
-    .describe(
-      "A photo to generate tags for, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
-});
-export type GenerateImageTagsInput = z.infer<typeof GenerateImageTagsInputSchema>;
-
-const GenerateImageTagsOutputSchema = z.object({
-  tags: z.array(z.string()).describe('An array of tags generated for the image.'),
-});
-export type GenerateImageTagsOutput = z.infer<typeof GenerateImageTagsOutputSchema>;
-
-export async function generateImageTags(input: GenerateImageTagsInput): Promise<GenerateImageTagsOutput> {
-  return generateImageTagsFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'generateImageTagsPrompt',
-  input: {schema: GenerateImageTagsInputSchema},
-  output: {schema: GenerateImageTagsOutputSchema},
-  prompt: `You are an expert in generating tags for images.
-
-  Given the following image, generate a list of tags that are relevant to the image.
-
-  Image: {{media url=photoDataUri}}
-  Tags:`, 
-});
-
-const generateImageTagsFlow = ai.defineFlow(
-  {
-    name: 'generateImageTagsFlow',
-    inputSchema: GenerateImageTagsInputSchema,
-    outputSchema: GenerateImageTagsOutputSchema,
+{
+  "name": "nextn",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack -p 9002",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  "dependencies": {
+    "@hookform/resolvers": "^4.1.3",
+    "@radix-ui/react-accordion": "^1.2.3",
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-avatar": "^1.1.3",
+    "@radix-ui/react-checkbox": "^1.1.4",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-menubar": "^1.1.6",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-progress": "^1.1.2",
+    "@radix-ui/react-radio-group": "^1.2.3",
+    "@radix-ui/react-scroll-area": "^1.2.3",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slider": "^1.2.3",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-switch": "^1.1.3",
+    "@radix-ui/react-tabs": "^1.1.3",
+    "@radix-ui/react-toast": "^1.2.6",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "@tanstack-query-firebase/react": "^1.0.5",
+    "@tanstack/react-query": "^5.66.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.5.0",
+    "firebase": "^11.7.3",
+    "lucide-react": "^0.475.0",
+    "next": "15.2.3",
+    "next-themes": "^0.3.0",
+    "patch-package": "^8.0.0",
+    "react": "^18.3.1",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.54.2",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
   }
-);
+}

@@ -44,7 +44,7 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
             alt={image.name} 
             layout="fill" 
             objectFit="cover"
-            data-ai-hint="product photography" 
+            // data-ai-hint removed
           />
         </div>
       </CardHeader>
@@ -69,9 +69,9 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
         <div className="mb-3">
           <div className="flex items-center text-sm text-muted-foreground mb-1">
             <Tag className="mr-2 h-4 w-4" />
-            AI Generated Tags:
+            Tags:
           </div>
-          {image.tags.length > 0 ? (
+          {image.tags && image.tags.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {image.tags.slice(0, 5).map((tag) => (
                 <Badge key={tag} variant="secondary" className="font-normal">{tag}</Badge>
@@ -79,7 +79,7 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
               {image.tags.length > 5 && <Badge variant="outline">+{image.tags.length - 5} more</Badge>}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground italic">No tags generated.</p>
+            <p className="text-sm text-muted-foreground italic">No tags available.</p>
           )}
         </div>
       </CardContent>

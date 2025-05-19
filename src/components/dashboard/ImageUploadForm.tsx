@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { generateImageTags, type GenerateImageTagsInput } from '@/ai/flows/generate-image-tags';
+// import { generateImageTags, type GenerateImageTagsInput } from '@/ai/flows/generate-image-tags'; // AI removed
 import type { ImageItem } from '@/types';
-import { UploadCloud, Loader2, Tag } from 'lucide-react';
+import { UploadCloud, Loader2 } from 'lucide-react'; // Tag icon removed
 import Image from 'next/image';
 
 interface ImageUploadFormProps {
@@ -61,21 +61,22 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
 
     setIsProcessing(true);
     try {
-      const aiInput: GenerateImageTagsInput = { photoDataUri: preview };
-      const aiOutput = await generateImageTags(aiInput);
+      // AI Tag generation removed
+      // const aiInput: GenerateImageTagsInput = { photoDataUri: preview };
+      // const aiOutput = await generateImageTags(aiInput);
 
       const newImageItem: ImageItem = {
         id: crypto.randomUUID(),
         dataUri: preview,
         name: file.name,
         price: "Not set", 
-        tags: aiOutput.tags,
+        tags: [], // Tags will be empty by default now
         uploadedAt: new Date(),
       };
       onImageUploaded(newImageItem);
       toast({
         title: "Image Uploaded",
-        description: `${file.name} has been uploaded and tagged successfully. Price can be set from the image card.`,
+        description: `${file.name} has been uploaded. Price can be set from the image card.`,
       });
       setFile(null);
       setPreview(null);
@@ -85,7 +86,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
       console.error("Error processing image:", error);
       toast({
         title: "Processing Error",
-        description: "Could not process the image or generate tags. Please try again.",
+        description: "Could not process the image. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -100,7 +101,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
           <UploadCloud className="mr-3 h-7 w-7 text-primary" />
           Upload New Image
         </CardTitle>
-        <CardDescription>Add an image and let AI generate relevant tags. Price can be set later.</CardDescription>
+        <CardDescription>Add an image. Price can be set later. Tags are no longer AI-generated.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -125,9 +126,10 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
             {isProcessing ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
-              <Tag className="mr-2 h-5 w-5" />
+              // Using UploadCloud icon instead of Tag for the button
+              <UploadCloud className="mr-2 h-5 w-5" /> 
             )}
-            {isProcessing ? 'Processing...' : 'Upload & Generate Tags'}
+            {isProcessing ? 'Processing...' : 'Upload Image'}
           </Button>
         </form>
       </CardContent>

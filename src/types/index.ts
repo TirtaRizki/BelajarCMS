@@ -1,10 +1,18 @@
 
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  displayName: string;
+  role: 'admin' | 'author' | 'operator'; // Define possible roles
+}
+
 export interface ImageItem {
   id: string;
   dataUri: string;
   name: string;
   price: string; // Price can be "Not set" or a monetary value e.g., "$19.99"
-  tags: string[];
+  tags: string[]; // Will default to empty if AI is removed
   uploadedAt: Date;
 }
 

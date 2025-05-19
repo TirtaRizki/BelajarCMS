@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+// import Link from 'next/link'; // Link component is no longer needed here
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -68,15 +68,7 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <Link href="/forgot-password" passHref legacyBehavior>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="px-0 text-sm h-auto text-primary hover:text-primary/80"
-                >
-                  Forgot password?
-                </Button>
-              </Link>
+              {/* Removed Forgot Password link */}
             </div>
             <Input
               id="password"
@@ -102,18 +94,7 @@ export function LoginForm() {
         <p className="text-muted-foreground">
           Demo: any username/password will work.
         </p>
-        <div className="text-muted-foreground">
-          Don't have an account?{' '}
-          <Link href="/signup" passHref legacyBehavior>
-            <Button
-              type="button"
-              variant="link"
-              className="px-0 text-sm h-auto font-semibold text-primary hover:text-primary/80"
-            >
-              Sign Up
-            </Button>
-          </Link>
-        </div>
+        {/* Removed Sign Up link */}
       </CardFooter>
     </Card>
   );

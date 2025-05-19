@@ -3,7 +3,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, UserCircle, PanelLeft, Menu } from 'lucide-react';
+import { LogOut, Settings, UserCircle, PanelLeft, Menu, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -15,29 +15,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge'; // Added Badge import
 
 export function AppHeader() {
-  const { logout } = useAuth();
-  const [displayName, setDisplayName] = useState("Admin User");
-  const [isClient, setIsClient] = useState(false);
+  const { user, logout } = useAuth();
   const { isMobile, setOpenMobile, openMobile } = useSidebar();
 
-
-  useEffect(() => {
-    setIsClient(true);
-    try {
-        const storedProfile = localStorage.getItem('nextadminlite_profile');
-        if (storedProfile) {
-            const profileData = JSON.parse(storedProfile);
-            if (profileData.displayName) {
-                setDisplayName(profileData.displayName);
-            }
-        }
-    } catch (error) {
-        console.warn("Could not load display name from local storage", error);
-    }
-  }, []);
+  const displayName = user?.displayName || "User";
+  const userEmail = user?.email || "user@example.com";
+  const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "N/A";
+  const avatarFallback = displayName.substring(0, 2).toUpperCase();
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-background/95 px-4 shadow-sm backdrop-blur-md sm:px-6">
@@ -61,20 +48,26 @@ export function AppHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar className="h-9 w-9">
-              <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" data-ai-hint="user avatar" />
-              <AvatarFallback>{isClient ? displayName.substring(0,2).toUpperCase() : 'AD'}</AvatarFallback>
+              <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" />
+              <AvatarFallback>{avatarFallback}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent className="w-64" align="end" forceMount> {/* Increased width */}
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{isClient ? displayName : "Admin User"}</p>
+              <p className="text-sm font-medium leading-none">{displayName}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                admin@example.com
+                {userEmail}
               </p>
             </div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled className="focus:bg-transparent">
+            <ShieldAlert className="mr-2 h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Role:</span>
+            <Badge variant="secondary" className="ml-auto">{userRole}</Badge>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <Link href="/dashboard/profile" passHref>
             <DropdownMenuItem>
