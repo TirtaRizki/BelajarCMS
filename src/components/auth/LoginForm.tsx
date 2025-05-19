@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn, Loader2 } from 'lucide-react';
-// import Link from 'next/link'; // Link component is no longer needed here
+import Link from 'next/link';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -29,7 +29,7 @@ export function LoginForm() {
       router.push('/dashboard');
       toast({
         title: "Login Successful",
-        description: "Welcome to NextAdmin Lite!",
+        description: "Welcome to Askhajaya!",
       });
     } else {
       toast({
@@ -48,8 +48,8 @@ export function LoginForm() {
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
         </div>
-        <CardTitle className="text-3xl font-bold">NextAdmin Lite</CardTitle>
-        <CardDescription>Sign in to access the dashboard</CardDescription>
+        <CardTitle className="text-3xl font-bold">AskhaJaya</CardTitle>
+        <CardDescription>Aplikasi CMS AskhaJaya</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -96,3 +96,4 @@ export function LoginForm() {
     </Card>
   );
 }
+
