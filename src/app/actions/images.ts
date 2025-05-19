@@ -12,7 +12,7 @@ import type { ImageItem, ServerActionResponse } from '@/types';
 
 export async function fetchImagesAction(): Promise<ServerActionResponse<ImageItem[]>> {
   console.log('Server Action: fetchImagesAction');
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
   // For now, return an empty array or some mock data if desired
   // return { success: true, data: mockImageStore };
   return { success: true, data: [] };
@@ -20,7 +20,7 @@ export async function fetchImagesAction(): Promise<ServerActionResponse<ImageIte
 
 export async function uploadImageAction(newImage: Omit<ImageItem, 'id' | 'uploadedAt'> & { uploadedAt?: Date }): Promise<ServerActionResponse<ImageItem>> {
   console.log('Server Action: uploadImageAction', newImage.name);
-  await new Promise(resolve => setTimeout(resolve, 800));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
   
   const imageToSave: ImageItem = {
     ...newImage,
@@ -37,7 +37,7 @@ export async function uploadImageAction(newImage: Omit<ImageItem, 'id' | 'upload
 
 export async function updateImagePriceAction(imageId: string, newPrice: string): Promise<ServerActionResponse<ImageItem>> {
   console.log('Server Action: updateImagePriceAction for ID', imageId, 'to price', newPrice);
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
 
   // const imageIndex = mockImageStore.findIndex(img => img.id === imageId);
   // if (imageIndex === -1) {
@@ -59,7 +59,7 @@ export async function updateImagePriceAction(imageId: string, newPrice: string):
 
 export async function deleteImageAction(imageId: string): Promise<ServerActionResponse> {
   console.log('Server Action: deleteImageAction for ID', imageId);
-  await new Promise(resolve => setTimeout(resolve, 400));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
 
   // const initialLength = mockImageStore.length;
   // mockImageStore = mockImageStore.filter(img => img.id !== imageId);
@@ -70,3 +70,4 @@ export async function deleteImageAction(imageId: string): Promise<ServerActionRe
   console.log('Server Action: image deletion successful for', imageId);
   return { success: true };
 }
+

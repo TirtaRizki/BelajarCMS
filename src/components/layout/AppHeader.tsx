@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { Badge } from '@/components/ui/badge'; // Added Badge import
+import { Badge } from '@/components/ui/badge';
 
 export function AppHeader() {
   const { user, logout } = useAuth();
@@ -24,7 +24,24 @@ export function AppHeader() {
   const displayName = user?.displayName || "User";
   const userEmail = user?.email || "user@example.com";
   const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "N/A";
-  const avatarFallback = displayName.substring(0, 2).toUpperCase();
+  
+  // More robust avatar fallback
+  const getAvatarFallback = () => {
+    if (user?.displayName && user.displayName.length >= 2) {
+      return user.displayName.substring(0, 2).toUpperCase();
+    }
+    if (user?.username && user.username.length >= 2) {
+      return user.username.substring(0, 2).toUpperCase();
+    }
+    if (user?.displayName && user.displayName.length === 1) {
+      return user.displayName.toUpperCase();
+    }
+     if (user?.username && user.username.length === 1) {
+      return user.username.toUpperCase();
+    }
+    return "XX"; // Default fallback
+  };
+  const avatarFallback = getAvatarFallback();
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-background/95 px-4 shadow-sm backdrop-blur-md sm:px-6">
