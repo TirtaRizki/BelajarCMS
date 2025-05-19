@@ -3,21 +3,17 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Image, MessageSquare, Newspaper, FileText, Loader2 } from "lucide-react";
-import type { ServerActionResponse, ImageItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
+import { BarChart3, Image, MessageSquare, Loader2 } from "lucide-react";
+import type { ServerActionResponse, ImageItem, TestimonialItem } from '@/types';
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { fetchImagesAction } from '@/app/actions/images';
 import { fetchTestimonialsAction } from '@/app/actions/testimonials';
-import { fetchNewsItemsAction } from '@/app/actions/news';
-import { fetchArticlesAction } from '@/app/actions/articles';
 import { useToast } from '@/hooks/use-toast';
 
 interface StatData {
   images: number | null;
   testimonials: number | null;
-  news: number | null;
-  articles: number | null;
 }
 
 export function AnalyticsClient() {
@@ -29,29 +25,23 @@ export function AnalyticsClient() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const [imagesRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
+        const [imagesRes, testimonialsRes] = await Promise.all([
           fetchImagesAction(),
           fetchTestimonialsAction(),
-          fetchNewsItemsAction(),
-          fetchArticlesAction(),
         ]);
         
         setStats({
           images: (imagesRes.success && imagesRes.data) ? imagesRes.data.length : 0,
           testimonials: (testimonialsRes.success && testimonialsRes.data) ? testimonialsRes.data.length : 0,
-          news: (newsRes.success && newsRes.data) ? newsRes.data.length : 0,
-          articles: (articlesRes.success && articlesRes.data) ? articlesRes.data.length : 0,
         });
 
         if (!imagesRes.success) console.error("Error fetching images for analytics:", imagesRes.error);
         if (!testimonialsRes.success) console.error("Error fetching testimonials for analytics:", testimonialsRes.error);
-        if (!newsRes.success) console.error("Error fetching news for analytics:", newsRes.error);
-        if (!articlesRes.success) console.error("Error fetching articles for analytics:", articlesRes.error);
 
       } catch (error) {
         console.error("Error loading stats from server actions for analytics:", error);
         toast({ title: "Analytics Error", description: "Could not load content statistics for analytics.", variant: "destructive" });
-        setStats({ images: 0, testimonials: 0, news: 0, articles: 0 });
+        setStats({ images: 0, testimonials: 0 });
       } finally {
         setIsLoading(false);
       }
@@ -62,8 +52,6 @@ export function AnalyticsClient() {
   const chartData = stats ? [
     { name: 'Images', count: stats.images ?? 0, fill: "hsl(var(--chart-1))" },
     { name: 'Testimonials', count: stats.testimonials ?? 0, fill: "hsl(var(--chart-2))" },
-    { name: 'News', count: stats.news ?? 0, fill: "hsl(var(--chart-3))" },
-    { name: 'Articles', count: stats.articles ?? 0, fill: "hsl(var(--chart-4))" },
   ] : [];
 
   const chartConfig = {
@@ -72,8 +60,6 @@ export function AnalyticsClient() {
     },
     images: { label: "Images", color: "hsl(var(--chart-1))" },
     testimonials: { label: "Testimonials", color: "hsl(var(--chart-2))" },
-    news: { label: "News", color: "hsl(var(--chart-3))" },
-    articles: { label: "Articles", color: "hsl(var(--chart-4))" },
   } satisfies Parameters<typeof ChartContainer>[0]["config"];
 
 
@@ -99,15 +85,11 @@ export function AnalyticsClient() {
             <>
               <StatDisplayCard title="Total Images" icon={Image} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatDisplayCard title="Total Testimonials" icon={MessageSquare} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
-              <StatDisplayCard title="News Articles" icon={Newspaper} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
-              <StatDisplayCard title="Published Articles" icon={FileText} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
             </>
           ) : (
             <>
               <StatDisplayCard title="Total Images" icon={Image} value={stats.images?.toString() ?? "0"} />
               <StatDisplayCard title="Total Testimonials" icon={MessageSquare} value={stats.testimonials?.toString() ?? "0"} />
-              <StatDisplayCard title="News Articles" icon={Newspaper} value={stats.news?.toString() ?? "0"} />
-              <StatDisplayCard title="Published Articles" icon={FileText} value={stats.articles?.toString() ?? "0"} />
             </>
           )}
         </CardContent>
@@ -156,7 +138,6 @@ export function AnalyticsClient() {
             <ul className="space-y-2 text-muted-foreground list-disc list-inside">
                 <li>User Traffic Trends (Not implemented)</li>
                 <li>Content View Counts (Not implemented)</li>
-                <li>Top Performing Articles (Not implemented)</li>
                 <li>Referral Sources (Not implemented)</li>
             </ul>
              <p className="mt-4 text-sm text-muted-foreground">

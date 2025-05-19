@@ -12,10 +12,11 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
+  SheetTitle as UiSheetTitle,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LayoutDashboard, Image, MessageSquare, Newspaper, FileText, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Image, MessageSquare, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -23,8 +24,6 @@ const menuItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/images', label: 'Image Management', icon: Image },
   { href: '/dashboard/testimonials', label: 'Testimonials', icon: MessageSquare },
-  { href: '/dashboard/news', label: 'News (Berita)', icon: Newspaper },
-  { href: '/dashboard/articles', label: 'Articles (Konten)', icon: FileText },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { type: 'separator' as const },
   { href: '/dashboard/profile', label: 'User Profile', icon: User },
@@ -34,7 +33,7 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { setOpen, open, isMobile, state: sidebarState } = useSidebar(); 
+  const { setOpenMobile, openMobile, isMobile, state: sidebarState, setOpen, open } = useSidebar(); 
 
   return (
     <UiSidebar
@@ -60,8 +59,8 @@ export function Sidebar() {
         </Link>
 
         {isMobile && (
-          <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">
-              {open ? <PanelLeftClose /> : <PanelLeftOpen />}
+          <Button variant="ghost" size="icon" onClick={() => setOpenMobile(!openMobile)} className="md:hidden">
+              {openMobile ? <PanelLeftClose /> : <PanelLeftOpen />}
           </Button>
         )}
       </UiSidebarHeader>
@@ -93,12 +92,12 @@ export function Sidebar() {
           </SidebarMenu>
         </SidebarContent>
       </ScrollArea>
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-2 group/sidebar" data-state={sidebarState}>
         <Button
           variant="ghost"
           className={cn(
             "w-full justify-start gap-2 text-left p-2 h-8 text-sm",
-            !isMobile && sidebarState === "collapsed" && "w-8 h-8 p-0 justify-center"
+             (!isMobile && sidebarState === "collapsed") && "w-8 h-8 p-0 justify-center"
           )}
           onClick={logout}
           title="Logout" 
@@ -106,11 +105,10 @@ export function Sidebar() {
           <LogOut className="h-4 w-4 shrink-0" />
           <span className={cn(
             "truncate",
-            !isMobile && sidebarState === "collapsed" && "hidden"
+            (!isMobile && sidebarState === "collapsed") && "hidden"
             )}>Logout</span>
         </Button>
       </SidebarFooter>
     </UiSidebar>
   );
 }
-

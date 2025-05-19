@@ -4,20 +4,16 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Image, MessageSquare, Newspaper, FileText, BarChart3, Settings, Loader2 } from "lucide-react";
-import type { ImageItem, TestimonialItem, NewsItem, ArticleItem, ServerActionResponse } from '@/types'; // Added ServerActionResponse
+import { Image, MessageSquare, Settings, Loader2, BarChart3 } from "lucide-react";
+import type { ServerActionResponse, ImageItem, TestimonialItem } from '@/types';
 import { fetchImagesAction } from '@/app/actions/images';
 import { fetchTestimonialsAction } from '@/app/actions/testimonials';
-import { fetchNewsItemsAction } from '@/app/actions/news';
-import { fetchArticlesAction } from '@/app/actions/articles';
 import { useToast } from '@/hooks/use-toast';
 
 
 export default function DashboardOverviewPage() {
   const [imageCount, setImageCount] = useState<number | null>(null);
   const [testimonialCount, setTestimonialCount] = useState<number | null>(null);
-  const [newsCount, setNewsCount] = useState<number | null>(null);
-  const [articleCount, setArticleCount] = useState<number | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const { toast } = useToast();
 
@@ -25,11 +21,9 @@ export default function DashboardOverviewPage() {
     const loadStats = async () => {
       setIsLoadingStats(true);
       try {
-        const [imagesRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
+        const [imagesRes, testimonialsRes] = await Promise.all([
           fetchImagesAction(),
           fetchTestimonialsAction(),
-          fetchNewsItemsAction(),
-          fetchArticlesAction(),
         ]);
 
         if (imagesRes.success && imagesRes.data) setImageCount(imagesRes.data.length);
@@ -38,19 +32,11 @@ export default function DashboardOverviewPage() {
         if (testimonialsRes.success && testimonialsRes.data) setTestimonialCount(testimonialsRes.data.length);
         else { setTestimonialCount(0); console.error("Error fetching testimonials:", testimonialsRes.error); }
 
-        if (newsRes.success && newsRes.data) setNewsCount(newsRes.data.length);
-        else { setNewsCount(0); console.error("Error fetching news:", newsRes.error); }
-
-        if (articlesRes.success && articlesRes.data) setArticleCount(articlesRes.data.length);
-        else { setArticleCount(0); console.error("Error fetching articles:", articlesRes.error); }
-
       } catch (error) {
         console.error("Error loading stats from server actions:", error);
         toast({ title: "Stat Loading Error", description: "Could not load all content statistics.", variant: "destructive" });
         setImageCount(0);
         setTestimonialCount(0);
-        setNewsCount(0);
-        setArticleCount(0);
       } finally {
         setIsLoadingStats(false);
       }
@@ -83,18 +69,6 @@ export default function DashboardOverviewPage() {
               title="Testimonials"
               description="Add and organize customer testimonials."
             />
-            <DashboardLinkCard
-              href="/dashboard/news"
-              icon={Newspaper}
-              title="News (Berita)"
-              description="Create and publish news articles."
-            />
-            <DashboardLinkCard
-              href="/dashboard/articles"
-              icon={FileText}
-              title="Articles (Konten)"
-              description="Manage your content articles."
-            />
              <DashboardLinkCard
               href="/dashboard/settings"
               icon={Settings}
@@ -121,15 +95,11 @@ export default function DashboardOverviewPage() {
             <>
               <StatCard title="Total Images" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatCard title="Total Testimonials" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
-              <StatCard title="News Articles" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
-              <StatCard title="Published Articles" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
             </>
           ) : (
             <>
               <StatCard title="Total Images" value={imageCount !== null ? imageCount.toString() : "N/A"} />
               <StatCard title="Total Testimonials" value={testimonialCount !== null ? testimonialCount.toString() : "N/A"} />
-              <StatCard title="News Articles" value={newsCount !== null ? newsCount.toString() : "N/A"} />
-              <StatCard title="Published Articles" value={articleCount !== null ? articleCount.toString() : "N/A"} />
             </>
           )}
         </CardContent>

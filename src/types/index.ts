@@ -27,28 +27,6 @@ export interface TestimonialItem {
   // userId?: string; // Optional: if testimonials are associated with users
 }
 
-export interface NewsItem {
-  id: string; // Typically string or number from DB
-  title: string;
-  content: string;
-  imageUrl?: string;
-  category: string;
-  publishedAt: Date;
-  // authorId?: string; // Optional: if news items are associated with users
-}
-
-export interface ArticleItem {
-  id: string; // Typically string or number from DB
-  title: string;
-  body: string;
-  author: string; // Could be authorId linking to User table
-  coverImageUrl?: string;
-  createdAt: Date;
-  updatedAt?: Date;
-  tags: string[]; // Consider a separate Tags table and a join table in Prisma
-  // authorId?: string; // Optional: if articles are associated with users
-}
-
 // Generic type for server action responses
 export type ServerActionResponse<T = null> = {
   success: boolean;
