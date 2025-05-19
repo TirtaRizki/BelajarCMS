@@ -6,16 +6,34 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { ImageItem } from '@/types';
-import { DollarSign, Tag, CalendarDays, Pencil } from 'lucide-react';
+import { DollarSign, Tag, CalendarDays, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import type React from 'react';
 
 interface ImageCardProps {
   image: ImageItem;
   onEditPrice: (image: ImageItem) => void;
+  onDeleteImage: (imageId: string) => void;
 }
 
-export function ImageCard({ image, onEditPrice }: ImageCardProps) {
+export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps) {
   const isPriceSet = image.price && image.price !== "Not set";
+
+  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent card click or other parent events
+    onDeleteImage(image.id);
+  };
 
   return (
     <Card className="overflow-hidden shadow-lg transition-all hover:shadow-xl h-full flex flex-col">
@@ -65,13 +83,32 @@ export function ImageCard({ image, onEditPrice }: ImageCardProps) {
           )}
         </div>
       </CardContent>
-      <CardFooter className="p-4 bg-muted/50 border-t">
+      <CardFooter className="p-4 bg-muted/50 border-t flex justify-between items-center">
         <div className="flex items-center text-xs text-muted-foreground">
           <CalendarDays className="mr-2 h-4 w-4" />
           Uploaded: {format(new Date(image.uploadedAt), "MMM dd, yyyy HH:mm")}
         </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm" className="gap-1">
+              <Trash2 className="h-3 w-3" />
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the image "{image.name}".
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Delete Image</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardFooter>
     </Card>
   );
 }
-

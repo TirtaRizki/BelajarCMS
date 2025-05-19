@@ -8,10 +8,12 @@ import { ImageCard } from './ImageCard';
 import { EditImagePriceModal } from './EditImagePriceModal';
 import { TestimonialForm } from './TestimonialForm';
 import { TestimonialCard } from './TestimonialCard';
-import { ImageIcon, Info, MessageSquareIcon } from 'lucide-react';
+import { EditTestimonialModal } from './EditTestimonialModal'; // New Import
+import { ImageIcon, Info, MessageSquareIcon, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from '@/hooks/use-toast';
 
 const IMAGE_STORAGE_KEY = 'nextadminlite_images';
 const TESTIMONIAL_STORAGE_KEY = 'nextadminlite_testimonials';
@@ -20,9 +22,14 @@ export function DashboardClient() {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const { toast } = useToast();
 
   const [isEditPriceModalOpen, setIsEditPriceModalOpen] = useState(false);
   const [editingImage, setEditingImage] = useState<ImageItem | null>(null);
+
+  const [isEditTestimonialModalOpen, setIsEditTestimonialModalOpen] = useState(false);
+  const [editingTestimonial, setEditingTestimonial] = useState<TestimonialItem | null>(null);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -46,8 +53,9 @@ export function DashboardClient() {
       }
     } catch (error) {
       console.error("Failed to load data from localStorage:", error);
+       toast({ title: "Loading Error", description: "Could not load data from local storage.", variant: "destructive" });
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (isClient) {
@@ -55,9 +63,10 @@ export function DashboardClient() {
         localStorage.setItem(IMAGE_STORAGE_KEY, JSON.stringify(images));
       } catch (error) {
         console.error("Failed to save images to localStorage:", error);
+        toast({ title: "Storage Error", description: "Could not save image data.", variant: "destructive" });
       }
     }
-  }, [images, isClient]);
+  }, [images, isClient, toast]);
 
   useEffect(() => {
     if (isClient) {
@@ -65,12 +74,13 @@ export function DashboardClient() {
         localStorage.setItem(TESTIMONIAL_STORAGE_KEY, JSON.stringify(testimonials));
       } catch (error) {
         console.error("Failed to save testimonials to localStorage:", error);
+        toast({ title: "Storage Error", description: "Could not save testimonial data.", variant: "destructive" });
       }
     }
-  }, [testimonials, isClient]);
+  }, [testimonials, isClient, toast]);
 
   const handleImageUploaded = (newImage: ImageItem) => {
-    setImages((prevImages) => [newImage, ...prevImages]);
+    setImages((prevImages) => [newImage, ...prevImages].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()));
   };
 
   const handleOpenEditPriceModal = (image: ImageItem) => {
@@ -85,10 +95,43 @@ export function DashboardClient() {
       )
     );
   };
+  
+  const handleDeleteImage = (imageId: string) => {
+    setImages((prevImages) => prevImages.filter((img) => img.id !== imageId));
+    toast({ title: "Image Deleted", description: "The image has been successfully deleted." });
+  };
+
 
   const handleTestimonialAdded = (newTestimonial: TestimonialItem) => {
-    setTestimonials((prevTestimonials) => [newTestimonial, ...prevTestimonials]);
+    setTestimonials((prevTestimonials) => [newTestimonial, ...prevTestimonials].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   };
+
+  const handleOpenEditTestimonialModal = (testimonial: TestimonialItem) => {
+    setEditingTestimonial(testimonial);
+    setIsEditTestimonialModalOpen(true);
+  };
+
+  const handleUpdateTestimonial = (testimonialId: string, newAuthor: string, newQuote: string) => {
+    setTestimonials((prevTestimonials) =>
+      prevTestimonials.map((item) =>
+        item.id === testimonialId ? { ...item, author: newAuthor, quote: newQuote } : item
+      )
+    );
+  };
+
+  const handleDeleteTestimonial = (testimonialId: string) => {
+    setTestimonials((prevTestimonials) => prevTestimonials.filter((item) => item.id !== testimonialId));
+    toast({ title: "Testimonial Deleted", description: "The testimonial has been successfully deleted." });
+  };
+
+
+  if (!isClient) {
+    return (
+      <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto">
@@ -100,9 +143,9 @@ export function DashboardClient() {
 
         <TabsContent value="images">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-1 lg:sticky lg:top-24">
+            <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-6">
               <ImageUploadForm onImageUploaded={handleImageUploaded} />
-              <Alert className="mt-6">
+              <Alert>
                 <Info className="h-4 w-4" />
                 <AlertTitle>Demo Information</AlertTitle>
                 <AlertDescription>
@@ -112,7 +155,7 @@ export function DashboardClient() {
             </div>
             
             <div className="lg:col-span-2">
-              {images.length === 0 && isClient ? (
+              {images.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center py-12 border-2 border-dashed rounded-lg bg-card">
                   <ImageIcon className="h-16 w-16 text-muted-foreground mb-4" />
                   <h2 className="text-2xl font-semibold mb-2">No Images Yet</h2>
@@ -121,31 +164,13 @@ export function DashboardClient() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {images.map((image) => (
-                    <ImageCard key={image.id} image={image} onEditPrice={handleOpenEditPriceModal} />
+                    <ImageCard 
+                      key={image.id} 
+                      image={image} 
+                      onEditPrice={handleOpenEditPriceModal}
+                      onDeleteImage={handleDeleteImage} 
+                    />
                   ))}
-                </div>
-              )}
-              {!isClient && (
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[1,2,3,4].map(i => (
-                        <Card key={i} className="shadow-lg h-full flex flex-col">
-                            <CardHeader className="p-0">
-                                <div className="relative w-full aspect-[16/10] bg-muted/50 animate-pulse"></div>
-                            </CardHeader>
-                            <CardContent className="p-4 flex-grow">
-                                <div className="h-6 bg-muted/50 rounded w-3/4 mb-2 animate-pulse"></div>
-                                <div className="h-8 bg-muted/50 rounded w-1/4 mb-3 animate-pulse"></div>
-                                <div className="h-4 bg-muted/50 rounded w-1/2 mb-1 animate-pulse"></div>
-                                <div className="flex flex-wrap gap-2">
-                                    <div className="h-6 w-16 bg-muted/50 rounded-full animate-pulse"></div>
-                                    <div className="h-6 w-20 bg-muted/50 rounded-full animate-pulse"></div>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="p-4 bg-muted/30 border-t">
-                                <div className="h-4 bg-muted/50 rounded w-1/2 animate-pulse"></div>
-                            </CardFooter>
-                        </Card>
-                    ))}
                 </div>
               )}
             </div>
@@ -158,7 +183,7 @@ export function DashboardClient() {
               <TestimonialForm onTestimonialAdded={handleTestimonialAdded} />
             </div>
             <div className="lg:col-span-2">
-              {testimonials.length === 0 && isClient ? (
+              {testimonials.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center py-12 border-2 border-dashed rounded-lg bg-card">
                   <MessageSquareIcon className="h-16 w-16 text-muted-foreground mb-4" />
                   <h2 className="text-2xl font-semibold mb-2">No Testimonials Yet</h2>
@@ -167,26 +192,13 @@ export function DashboardClient() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {testimonials.map((testimonial) => (
-                    <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+                    <TestimonialCard 
+                        key={testimonial.id} 
+                        testimonial={testimonial} 
+                        onEditTestimonial={handleOpenEditTestimonialModal}
+                        onDeleteTestimonial={handleDeleteTestimonial}
+                    />
                   ))}
-                </div>
-              )}
-               {!isClient && ( // Skeleton for testimonials
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[1,2].map(i => (
-                        <Card key={i} className="shadow-lg h-full flex flex-col">
-                            <CardHeader className="pb-3">
-                                <div className="h-6 bg-muted/50 rounded w-1/2 animate-pulse"></div>
-                            </CardHeader>
-                            <CardContent className="flex-grow">
-                                <div className="h-4 bg-muted/50 rounded w-full mb-2 animate-pulse"></div>
-                                <div className="h-4 bg-muted/50 rounded w-3/4 animate-pulse"></div>
-                            </CardContent>
-                            <CardFooter className="p-4 bg-muted/30 border-t">
-                                <div className="h-4 bg-muted/50 rounded w-1/3 animate-pulse"></div>
-                            </CardFooter>
-                        </Card>
-                    ))}
                 </div>
               )}
             </div>
@@ -200,6 +212,15 @@ export function DashboardClient() {
           onOpenChange={setIsEditPriceModalOpen}
           image={editingImage}
           onSave={handleUpdateImagePrice}
+        />
+      )}
+
+      {editingTestimonial && (
+        <EditTestimonialModal
+          isOpen={isEditTestimonialModalOpen}
+          onOpenChange={setIsEditTestimonialModalOpen}
+          testimonial={editingTestimonial}
+          onSave={handleUpdateTestimonial}
         />
       )}
     </div>
