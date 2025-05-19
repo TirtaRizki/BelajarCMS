@@ -34,7 +34,7 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { setOpen, open, isMobile } = useSidebar(); // isMobile to conditionally render behavior
+  const { setOpen, open, isMobile } = useSidebar(); 
 
   return (
     <UiSidebar
@@ -44,31 +44,28 @@ export function Sidebar() {
       sheetTitle="Askhajaya Menu" 
     >
       <UiSidebarHeader className="p-2 flex justify-between items-center">
-        {/* Expanded Logo/Title for Desktop */}
         <Link href="/dashboard" className={cn(
             "flex items-center gap-2",
             "group-data-[collapsible=icon]:group-data-[state=expanded]:inline",
             "group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden",
-            isMobile && "hidden" // Hide on mobile as sheet has its own title
+            isMobile && "hidden" 
             )}>
            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
           <span className="text-lg font-semibold">Askhajaya</span>
         </Link>
-         {/* Collapsed Logo (Icon only) for Desktop */}
         <Link href="/dashboard" className={cn(
-            "items-center",
+            "items-center justify-center",
             "group-data-[collapsible=icon]:group-data-[state=expanded]:hidden",
             "group-data-[collapsible=icon]:group-data-[state=collapsed]:flex",
-            "hidden md:flex justify-center w-full", // Ensure it's hidden on mobile unless specifically handled
+            "hidden md:flex w-full",
              isMobile && "hidden" 
             )}>
            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
         </Link>
-        {/* Mobile specific: Hamburger to close sheet. Desktop uses its own trigger in AppHeader. */}
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">
               {open ? <PanelLeftClose /> : <PanelLeftOpen />}
@@ -91,7 +88,7 @@ export function Sidebar() {
                         tooltip={item.label}
                       >
                         <a>
-                          <item.icon className="h-4 w-4" /> {/* Ensure icon size is consistent */}
+                          <item.icon className="h-4 w-4" /> 
                           <span className="truncate">{item.label}</span>
                         </a>
                       </SidebarMenuButton>
@@ -107,15 +104,13 @@ export function Sidebar() {
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-2 text-left p-2 h-8 text-sm", // Base styles for expanded
-             // Styles for collapsed from parent Sidebar's group state
+            "w-full justify-start gap-2 text-left p-2 h-8 text-sm", 
             "group-data-[state=collapsed]/sidebar:w-8 group-data-[state=collapsed]/sidebar:h-8 group-data-[state=collapsed]/sidebar:p-0 group-data-[state=collapsed]/sidebar:justify-center"
           )}
           onClick={logout}
-          title="Logout" // Tooltip for collapsed state
+          title="Logout" 
         >
-          <LogOut className="h-4 w-4" /> {/* Consistent icon size */}
-          {/* Text span hidden in collapsed state by parent Sidebar's group state */}
+          <LogOut className="h-4 w-4" />
           <span className="truncate group-data-[state=collapsed]/sidebar:hidden">Logout</span>
         </Button>
       </SidebarFooter>

@@ -222,7 +222,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
       <div
         ref={ref}
         className={cn(
-            "group/sidebar peer hidden md:block text-sidebar-foreground", // Added group/sidebar here
+            "group/sidebar peer hidden md:block text-sidebar-foreground", 
             side === "left" ? "pr-[var(--sidebar-content-offset,0px)]" : "pl-[var(--sidebar-content-offset,0px)]",
             className
         )}
@@ -548,13 +548,13 @@ const sidebarMenuButtonVariants = cva(
     "data-[active=true]:bg-sidebar-primary", "data-[active=true]:font-medium", "data-[active=true]:text-sidebar-primary-foreground",
     "data-[state=open]:hover:bg-sidebar-accent", "data-[state=open]:hover:text-sidebar-accent-foreground",
     "[&>span:last-child]:truncate", "[&>svg]:size-4", "[&>svg]:shrink-0",
-    "p-2", // Default padding for expanded state
+    "p-2",
 
     // Collapsed state for icon view:
-    "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-8", // Fixed width for icon button
-    "group-data-[collapsible=icon]:group-data-[state=collapsed]:p-0", // No padding, icon centered
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-8", 
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:p-0",
     "group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center",
-    "group-data-[collapsible=icon]:group-data-[state=collapsed]:[&>span:last-child]:hidden" // Hide text span
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:[&>span:last-child]:hidden"
   ],
   {
     variants: {
@@ -563,7 +563,7 @@ const sidebarMenuButtonVariants = cva(
         outline:
           "bg-transparent border border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:border-sidebar-accent",
       },
-      size: { // These apply to height and text size, collapsed state handles width and padding
+      size: { 
         default: "h-8 text-sm",
         sm: "h-7 text-xs",
         lg: "h-10 text-base",
@@ -819,4 +819,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-
