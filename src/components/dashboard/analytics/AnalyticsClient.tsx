@@ -4,14 +4,14 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Image, MessageSquare, Newspaper, FileText, Loader2 } from "lucide-react";
-import type { ImageItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
+import type { ServerActionResponse, ImageItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-
-const IMAGE_STORAGE_KEY = 'nextadminlite_images';
-const TESTIMONIAL_STORAGE_KEY = 'nextadminlite_testimonials';
-const NEWS_STORAGE_KEY = 'nextadminlite_news';
-const ARTICLES_STORAGE_KEY = 'nextadminlite_articles';
+import { fetchImagesAction } from '@/app/actions/images';
+import { fetchTestimonialsAction } from '@/app/actions/testimonials';
+import { fetchNewsItemsAction } from '@/app/actions/news';
+import { fetchArticlesAction } from '@/app/actions/articles';
+import { useToast } from '@/hooks/use-toast';
 
 interface StatData {
   images: number | null;
@@ -23,37 +23,41 @@ interface StatData {
 export function AnalyticsClient() {
   const [stats, setStats] = useState<StatData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchStats = () => {
+    const fetchStats = async () => {
+      setIsLoading(true);
       try {
-        const storedImages = localStorage.getItem(IMAGE_STORAGE_KEY);
-        const imageCount = storedImages ? JSON.parse(storedImages).length : 0;
-
-        const storedTestimonials = localStorage.getItem(TESTIMONIAL_STORAGE_KEY);
-        const testimonialCount = storedTestimonials ? JSON.parse(storedTestimonials).length : 0;
-
-        const storedNews = localStorage.getItem(NEWS_STORAGE_KEY);
-        const newsCount = storedNews ? JSON.parse(storedNews).length : 0;
-
-        const storedArticles = localStorage.getItem(ARTICLES_STORAGE_KEY);
-        const articleCount = storedArticles ? JSON.parse(storedArticles).length : 0;
+        const [imagesRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
+          fetchImagesAction(),
+          fetchTestimonialsAction(),
+          fetchNewsItemsAction(),
+          fetchArticlesAction(),
+        ]);
         
         setStats({
-          images: imageCount,
-          testimonials: testimonialCount,
-          news: newsCount,
-          articles: articleCount,
+          images: (imagesRes.success && imagesRes.data) ? imagesRes.data.length : 0,
+          testimonials: (testimonialsRes.success && testimonialsRes.data) ? testimonialsRes.data.length : 0,
+          news: (newsRes.success && newsRes.data) ? newsRes.data.length : 0,
+          articles: (articlesRes.success && articlesRes.data) ? articlesRes.data.length : 0,
         });
+
+        if (!imagesRes.success) console.error("Error fetching images for analytics:", imagesRes.error);
+        if (!testimonialsRes.success) console.error("Error fetching testimonials for analytics:", testimonialsRes.error);
+        if (!newsRes.success) console.error("Error fetching news for analytics:", newsRes.error);
+        if (!articlesRes.success) console.error("Error fetching articles for analytics:", articlesRes.error);
+
       } catch (error) {
-        console.error("Error loading stats from localStorage for analytics:", error);
+        console.error("Error loading stats from server actions for analytics:", error);
+        toast({ title: "Analytics Error", description: "Could not load content statistics for analytics.", variant: "destructive" });
         setStats({ images: 0, testimonials: 0, news: 0, articles: 0 });
       } finally {
         setIsLoading(false);
       }
     };
     fetchStats();
-  }, []);
+  }, [toast]);
 
   const chartData = stats ? [
     { name: 'Images', count: stats.images ?? 0, fill: "hsl(var(--chart-1))" },
@@ -81,7 +85,7 @@ export function AnalyticsClient() {
             <BarChart3 className="h-8 w-8 text-primary" />
             <CardTitle className="text-3xl">Content Analytics</CardTitle>
           </div>
-          <CardDescription>Overview of your application's content statistics. Data is sourced from local storage.</CardDescription>
+          <CardDescription>Overview of your application's content statistics. Data is sourced via server actions.</CardDescription>
         </CardHeader>
       </Card>
 
@@ -156,7 +160,7 @@ export function AnalyticsClient() {
                 <li>Referral Sources (Not implemented)</li>
             </ul>
              <p className="mt-4 text-sm text-muted-foreground">
-                Implementing these features would typically require a backend analytics service.
+                Implementing these features would typically require a backend analytics service and database integration.
              </p>
         </CardContent>
       </Card>

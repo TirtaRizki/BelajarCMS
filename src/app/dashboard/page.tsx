@@ -5,12 +5,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Image, MessageSquare, Newspaper, FileText, BarChart3, Settings, Loader2 } from "lucide-react";
-import type { ImageItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
+import type { ImageItem, TestimonialItem, NewsItem, ArticleItem, ServerActionResponse } from '@/types'; // Added ServerActionResponse
+import { fetchImagesAction } from '@/app/actions/images';
+import { fetchTestimonialsAction } from '@/app/actions/testimonials';
+import { fetchNewsItemsAction } from '@/app/actions/news';
+import { fetchArticlesAction } from '@/app/actions/articles';
+import { useToast } from '@/hooks/use-toast';
 
-const IMAGE_STORAGE_KEY = 'nextadminlite_images';
-const TESTIMONIAL_STORAGE_KEY = 'nextadminlite_testimonials';
-const NEWS_STORAGE_KEY = 'nextadminlite_news';
-const ARTICLES_STORAGE_KEY = 'nextadminlite_articles';
 
 export default function DashboardOverviewPage() {
   const [imageCount, setImageCount] = useState<number | null>(null);
@@ -18,51 +19,44 @@ export default function DashboardOverviewPage() {
   const [newsCount, setNewsCount] = useState<number | null>(null);
   const [articleCount, setArticleCount] = useState<number | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    try {
-      const storedImages = localStorage.getItem(IMAGE_STORAGE_KEY);
-      if (storedImages) {
-        const parsedImages: ImageItem[] = JSON.parse(storedImages);
-        setImageCount(parsedImages.length);
-      } else {
+    const loadStats = async () => {
+      setIsLoadingStats(true);
+      try {
+        const [imagesRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
+          fetchImagesAction(),
+          fetchTestimonialsAction(),
+          fetchNewsItemsAction(),
+          fetchArticlesAction(),
+        ]);
+
+        if (imagesRes.success && imagesRes.data) setImageCount(imagesRes.data.length);
+        else { setImageCount(0); console.error("Error fetching images:", imagesRes.error); }
+        
+        if (testimonialsRes.success && testimonialsRes.data) setTestimonialCount(testimonialsRes.data.length);
+        else { setTestimonialCount(0); console.error("Error fetching testimonials:", testimonialsRes.error); }
+
+        if (newsRes.success && newsRes.data) setNewsCount(newsRes.data.length);
+        else { setNewsCount(0); console.error("Error fetching news:", newsRes.error); }
+
+        if (articlesRes.success && articlesRes.data) setArticleCount(articlesRes.data.length);
+        else { setArticleCount(0); console.error("Error fetching articles:", articlesRes.error); }
+
+      } catch (error) {
+        console.error("Error loading stats from server actions:", error);
+        toast({ title: "Stat Loading Error", description: "Could not load all content statistics.", variant: "destructive" });
         setImageCount(0);
-      }
-
-      const storedTestimonials = localStorage.getItem(TESTIMONIAL_STORAGE_KEY);
-      if (storedTestimonials) {
-        const parsedTestimonials: TestimonialItem[] = JSON.parse(storedTestimonials);
-        setTestimonialCount(parsedTestimonials.length);
-      } else {
         setTestimonialCount(0);
-      }
-
-      const storedNews = localStorage.getItem(NEWS_STORAGE_KEY);
-      if (storedNews) {
-        const parsedNews: NewsItem[] = JSON.parse(storedNews);
-        setNewsCount(parsedNews.length);
-      } else {
         setNewsCount(0);
-      }
-
-      const storedArticles = localStorage.getItem(ARTICLES_STORAGE_KEY);
-      if (storedArticles) {
-        const parsedArticles: ArticleItem[] = JSON.parse(storedArticles);
-        setArticleCount(parsedArticles.length);
-      } else {
         setArticleCount(0);
+      } finally {
+        setIsLoadingStats(false);
       }
-    } catch (error) {
-      console.error("Error loading stats from localStorage:", error);
-      // Set counts to 0 or handle error display as needed
-      setImageCount(0);
-      setTestimonialCount(0);
-      setNewsCount(0);
-      setArticleCount(0);
-    } finally {
-      setIsLoadingStats(false);
-    }
-  }, []);
+    };
+    loadStats();
+  }, [toast]);
 
   return (
     <div className="space-y-8">

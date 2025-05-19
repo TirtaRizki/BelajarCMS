@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,23 +9,32 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import type { ArticleItem } from '@/types';
-import { PlusCircle, Loader2, Type, User, Image as ImageIcon, Tag } from 'lucide-react'; // ContentIcon removed, using Type for title, FileText for body
+import { PlusCircle, Loader2, Type, User, Image as ImageIcon, Tag } from 'lucide-react'; 
 
 interface ArticleFormProps {
-  onArticleAdded: (articleItem: ArticleItem) => void;
+  onArticleAdded: (articleItemDraft: Omit<ArticleItem, 'id' | 'createdAt' | 'updatedAt'>) => void;
   initialData?: Partial<ArticleItem>;
   onCancel?: () => void;
+  isProcessing: boolean;
 }
 
-export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFormProps) {
-  const [title, setTitle] = useState(initialData?.title || '');
-  const [body, setBody] = useState(initialData?.body || '');
-  const [author, setAuthor] = useState(initialData?.author || 'Askhajaya Admin'); // Default author
-  const [coverImageUrl, setCoverImageUrl] = useState(initialData?.coverImageUrl || '');
-  const [tagsString, setTagsString] = useState(initialData?.tags?.join(', ') || ''); // Tags as comma-separated string
-
-  const [isProcessing, setIsProcessing] = useState(false);
+export function ArticleForm({ onArticleAdded, initialData, onCancel, isProcessing }: ArticleFormProps) {
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [author, setAuthor] = useState('Askhajaya Admin');
+  const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [tagsString, setTagsString] = useState('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      setBody(initialData.body || '');
+      setAuthor(initialData.author || 'Askhajaya Admin');
+      setCoverImageUrl(initialData.coverImageUrl || '');
+      setTagsString(initialData.tags?.join(', ') || '');
+    }
+  }, [initialData]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -38,28 +47,18 @@ export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFo
       return;
     }
 
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-
     const tagsArray = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
 
-    const newArticleItem: ArticleItem = {
-      id: initialData?.id || crypto.randomUUID(),
+    const articleItemDraft: Omit<ArticleItem, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
       body,
       author,
       coverImageUrl: coverImageUrl.trim() || undefined,
-      createdAt: initialData?.createdAt || new Date(),
       tags: tagsArray,
     };
 
-    onArticleAdded(newArticleItem);
+    onArticleAdded(articleItemDraft);
     
-    toast({
-      title: initialData?.id ? "Article Updated" : "Article Added",
-      description: `"${title}" has been successfully ${initialData?.id ? 'updated' : 'added'}.`,
-    });
-
     if (!initialData?.id) {
         setTitle('');
         setBody('');
@@ -67,7 +66,6 @@ export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFo
         setCoverImageUrl('');
         setTagsString('');
     }
-    setIsProcessing(false);
   };
 
   return (
@@ -94,11 +92,11 @@ export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFo
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              disabled={isProcessing}
             />
           </div>
           <div>
             <Label htmlFor="article-body" className="flex items-center mb-1">
-              {/* Using a generic icon for body, as FileText is used in sidebar */}
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4 text-muted-foreground"><path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10"/></svg>
               Body / Content
             </Label>
@@ -109,6 +107,7 @@ export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFo
               onChange={(e) => setBody(e.target.value)}
               required
               rows={10}
+              disabled={isProcessing}
             />
           </div>
           <div>
@@ -122,6 +121,7 @@ export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFo
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               required
+              disabled={isProcessing}
             />
           </div>
           <div>
@@ -134,6 +134,7 @@ export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFo
               placeholder="https://example.com/cover-image.png"
               value={coverImageUrl}
               onChange={(e) => setCoverImageUrl(e.target.value)}
+              disabled={isProcessing}
             />
           </div>
            <div>
@@ -146,6 +147,7 @@ export function ArticleForm({ onArticleAdded, initialData, onCancel }: ArticleFo
               placeholder="e.g., technology, nextjs, ai"
               value={tagsString}
               onChange={(e) => setTagsString(e.target.value)}
+              disabled={isProcessing}
             />
           </div>
           <div className="flex gap-2 justify-end">

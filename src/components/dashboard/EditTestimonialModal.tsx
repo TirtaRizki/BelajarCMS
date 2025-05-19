@@ -24,12 +24,12 @@ interface EditTestimonialModalProps {
   onOpenChange: (isOpen: boolean) => void;
   testimonial: TestimonialItem | null;
   onSave: (testimonialId: string, newAuthor: string, newQuote: string) => void;
+  isProcessing: boolean;
 }
 
-export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave }: EditTestimonialModalProps) {
+export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave, isProcessing }: EditTestimonialModalProps) {
   const [author, setAuthor] = useState('');
   const [quote, setQuote] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!testimonial) return;
+    if (!testimonial || isProcessing) return;
 
     if (!author.trim() || !quote.trim()) {
       toast({
@@ -52,21 +52,14 @@ export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave
       return;
     }
     
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
     onSave(testimonial.id, author, quote);
-    setIsLoading(false);
-    onOpenChange(false);
-    toast({
-      title: "Testimonial Updated",
-      description: `Testimonial by ${author} has been updated.`,
-    });
+    // Parent handles toast and closing modal
   };
 
   if (!testimonial) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isProcessing && onOpenChange(open)}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Testimonial</DialogTitle>
@@ -87,6 +80,7 @@ export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               required
+              disabled={isProcessing}
             />
           </div>
           <div>
@@ -101,16 +95,17 @@ export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave
               onChange={(e) => setQuote(e.target.value)}
               required
               rows={4}
+              disabled={isProcessing}
             />
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={isLoading}>
+              <Button type="button" variant="outline" disabled={isProcessing}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" disabled={isProcessing}>
+              {isProcessing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />

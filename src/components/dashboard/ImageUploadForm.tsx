@@ -12,13 +12,13 @@ import { UploadCloud, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 interface ImageUploadFormProps {
-  onImageUploaded: (imageItem: ImageItem) => void;
+  onImageUploaded: (imageItemDraft: Omit<ImageItem, 'id' | 'uploadedAt'>) => void;
+  isProcessing: boolean;
 }
 
-export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
+export function ImageUploadForm({ onImageUploaded, isProcessing }: ImageUploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -27,12 +27,12 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
       if (selectedFile.size > 20 * 1024 * 1024) { // 20MB limit
         toast({
           title: "File too large",
-          description: "Please upload an image smaller than 20MB. Note: localStorage capacity is limited and large files may cause issues.",
+          description: "Please upload an image smaller than 20MB.",
           variant: "destructive",
         });
         setFile(null);
         setPreview(null);
-        event.target.value = ''; // Reset file input
+        event.target.value = ''; 
         return;
       }
       setFile(selectedFile);
@@ -58,34 +58,26 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
       return;
     }
 
-    setIsProcessing(true);
     try {
-      const newImageItem: ImageItem = {
-        id: crypto.randomUUID(),
+      // Note: id and uploadedAt will be set by the server/action
+      const newImageDraft: Omit<ImageItem, 'id' | 'uploadedAt'> = {
         dataUri: preview,
         name: file.name,
-        price: "Not set", 
-        // tags: [], // Tags removed
-        uploadedAt: new Date(),
+        price: "Not set",
       };
-      onImageUploaded(newImageItem);
-      toast({
-        title: "Image Uploaded",
-        description: `${file.name} has been uploaded. Price can be set from the image card.`,
-      });
+      onImageUploaded(newImageDraft);
+      // Toast for successful upload is handled by the parent component after server action
       setFile(null);
       setPreview(null);
       (event.target as HTMLFormElement).reset();
 
     } catch (error) {
-      console.error("Error processing image:", error);
+      console.error("Error preparing image for upload:", error);
       toast({
         title: "Processing Error",
-        description: "Could not process the image. Please try again.",
+        description: "Could not process the image for upload. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -108,6 +100,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
               accept="image/png, image/jpeg, image/gif, image/webp"
               onChange={handleFileChange}
               required
+              disabled={isProcessing}
               className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
             />
             {preview && (

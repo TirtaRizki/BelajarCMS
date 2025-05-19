@@ -5,7 +5,7 @@ import NextImage from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { NewsItem } from '@/types';
-import { CalendarDays, Tag, Pencil, Trash2, ImageOff } from 'lucide-react';
+import { CalendarDays, Pencil, Trash2, ImageOff, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -25,9 +25,10 @@ interface NewsCardProps {
   newsItem: NewsItem;
   onEditNews: (newsItem: NewsItem) => void;
   onDeleteNews: (newsId: string) => void;
+  isProcessing: boolean;
 }
 
-export function NewsCard({ newsItem, onEditNews, onDeleteNews }: NewsCardProps) {
+export function NewsCard({ newsItem, onEditNews, onDeleteNews, isProcessing }: NewsCardProps) {
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -64,17 +65,19 @@ export function NewsCard({ newsItem, onEditNews, onDeleteNews }: NewsCardProps) 
         <div className="flex items-center text-xs text-muted-foreground w-full justify-between">
             <div className="flex items-center">
                 <CalendarDays className="mr-2 h-4 w-4" />
-                Published: {format(new Date(newsItem.publishedAt), "MMM dd, yyyy")}
+                Published: {newsItem.publishedAt ? format(new Date(newsItem.publishedAt), "MMM dd, yyyy") : 'N/A'}
             </div>
              <Badge variant="outline">ID: {newsItem.id.substring(0,6)}...</Badge>
         </div>
         <div className="w-full flex justify-end space-x-2">
-          <Button variant="outline" size="sm" onClick={() => onEditNews(newsItem)} className="gap-1">
+          <Button variant="outline" size="sm" onClick={() => onEditNews(newsItem)} className="gap-1" disabled={isProcessing}>
+            {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
             <Pencil className="h-3 w-3" /> Edit
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm" className="gap-1">
+              <Button variant="destructive" size="sm" className="gap-1" disabled={isProcessing}>
+                {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
                 <Trash2 className="h-3 w-3" /> Delete
               </Button>
             </AlertDialogTrigger>
@@ -86,8 +89,11 @@ export function NewsCard({ newsItem, onEditNews, onDeleteNews }: NewsCardProps) 
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Delete News Item</AlertDialogAction>
+                <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} disabled={isProcessing}>
+                   {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Delete News Item
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

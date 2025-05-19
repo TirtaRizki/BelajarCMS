@@ -15,8 +15,8 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { Loader2, XCircle } from 'lucide-react'; // DollarSign removed
-import { useToast } from '@/hooks/use-toast';
+import { Loader2, XCircle } from 'lucide-react';
+// import { useToast } from '@/hooks/use-toast'; // Toast is handled by parent
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,13 +33,13 @@ interface EditImagePriceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   image: ImageItem | null;
-  onSave: (imageId: string, newPrice: string) => void;
+  onSave: (imageId: string, newPrice: string) => void; // Parent handles async and toast
+  isProcessing: boolean;
 }
 
-export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: EditImagePriceModalProps) {
+export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave, isProcessing }: EditImagePriceModalProps) {
   const [price, setPrice] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  // const { toast } = useToast(); // Parent will handle toast
 
   useEffect(() => {
     if (image) {
@@ -49,39 +49,25 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!image) return;
+    if (!image || isProcessing) return;
 
-    const numericPrice = price.trim().replace(/[^0-9]/g, ''); // Keep only numbers
+    const numericPrice = price.trim().replace(/[^0-9]/g, ''); 
     const finalPrice = numericPrice === '' ? "Not set" : numericPrice;
     
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    onSave(image.id, finalPrice);
-    setIsLoading(false);
-    onOpenChange(false);
-    toast({
-      title: "Price Updated",
-      description: `Price for ${image.name} has been updated to ${finalPrice === "Not set" ? "Not set" : `Rp ${Number(finalPrice).toLocaleString('id-ID')}`}.`,
-    });
+    onSave(image.id, finalPrice); // Parent handles the async logic
+    // onOpenChange(false); // Parent might close it after successful save
   };
 
   const handleRemovePrice = async () => {
-    if (!image) return;
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!image || isProcessing) return;
     onSave(image.id, "Not set");
-    setIsLoading(false);
-    onOpenChange(false);
-    toast({
-      title: "Price Removed",
-      description: `Price for ${image.name} has been set to "Not set".`,
-    });
+    // onOpenChange(false); // Parent might close it
   }
 
   if (!image) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isProcessing && onOpenChange(open)}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit Price for {image.name}</DialogTitle>
@@ -101,9 +87,9 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
               inputMode="numeric"
               placeholder="e.g., 150000"
               value={price}
+              disabled={isProcessing}
               onChange={(e) => {
                 const value = e.target.value;
-                // Allow only numbers or empty string
                 if (/^\d*$/.test(value)) {
                   setPrice(value);
                 }
@@ -114,7 +100,8 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
             {image.price !== "Not set" && price.trim() !== "" ? ( 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button type="button" variant="destructive" className="gap-1" disabled={isLoading}>
+                  <Button type="button" variant="destructive" className="gap-1" disabled={isProcessing}>
+                    {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     <XCircle className="h-4 w-4" /> Remove Price
                   </Button>
                 </AlertDialogTrigger>
@@ -126,9 +113,9 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleRemovePrice} disabled={isLoading}>
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleRemovePrice} disabled={isProcessing}>
+                      {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Confirm Removal
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -138,12 +125,12 @@ export function EditImagePriceModal({ isOpen, onOpenChange, image, onSave }: Edi
             
             <div className="flex gap-2">
               <DialogClose asChild>
-                <Button type="button" variant="outline" disabled={isLoading}>
+                <Button type="button" variant="outline" disabled={isProcessing}>
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={isProcessing}>
+                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Price
               </Button>
             </div>

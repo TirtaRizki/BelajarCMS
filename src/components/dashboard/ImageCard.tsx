@@ -5,7 +5,7 @@ import NextImage from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { ImageItem } from '@/types';
-import { CalendarDays, Pencil, Trash2 } from 'lucide-react'; // DollarSign and Tag removed
+import { CalendarDays, Pencil, Trash2, Loader2 } from 'lucide-react'; 
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -24,6 +24,7 @@ interface ImageCardProps {
   image: ImageItem;
   onEditPrice: (image: ImageItem) => void;
   onDeleteImage: (imageId: string) => void;
+  isProcessing: boolean; // To disable buttons during operations
 }
 
 function formatPrice(price: string) {
@@ -33,7 +34,7 @@ function formatPrice(price: string) {
   return `Rp ${number.toLocaleString('id-ID')}`;
 }
 
-export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps) {
+export function ImageCard({ image, onEditPrice, onDeleteImage, isProcessing }: ImageCardProps) {
   const isPriceSet = image.price && image.price !== "Not set";
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -64,22 +65,22 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
           ) : (
             <p className="text-muted-foreground italic">Price not set</p>
           )}
-           <Button variant="outline" size="sm" onClick={() => onEditPrice(image)} className="gap-1">
+           <Button variant="outline" size="sm" onClick={() => onEditPrice(image)} className="gap-1" disabled={isProcessing}>
+            {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
             <Pencil className="h-3 w-3" />
             {isPriceSet ? 'Edit Price' : 'Set Price'}
           </Button>
         </div>
-
-        {/* Tags section removed */}
       </CardContent>
       <CardFooter className="p-4 bg-muted/50 border-t flex justify-between items-center">
         <div className="flex items-center text-xs text-muted-foreground">
           <CalendarDays className="mr-2 h-4 w-4" />
-          Uploaded: {format(new Date(image.uploadedAt), "MMM dd, yyyy HH:mm")}
+          Uploaded: {image.uploadedAt ? format(new Date(image.uploadedAt), "MMM dd, yyyy HH:mm") : 'N/A'}
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm" className="gap-1">
+            <Button variant="destructive" size="sm" className="gap-1" disabled={isProcessing}>
+              {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
               <Trash2 className="h-3 w-3" />
               Delete
             </Button>
@@ -92,8 +93,11 @@ export function ImageCard({ image, onEditPrice, onDeleteImage }: ImageCardProps)
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Delete Image</AlertDialogAction>
+              <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} disabled={isProcessing}>
+                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Delete Image
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

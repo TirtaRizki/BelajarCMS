@@ -4,7 +4,7 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { TestimonialItem } from '@/types';
-import { CalendarDays, Quote as QuoteIcon, User, Pencil, Trash2 } from 'lucide-react';
+import { CalendarDays, Quote as QuoteIcon, User, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -23,9 +23,10 @@ interface TestimonialCardProps {
   testimonial: TestimonialItem;
   onEditTestimonial: (testimonial: TestimonialItem) => void;
   onDeleteTestimonial: (testimonialId: string) => void;
+  isProcessing: boolean;
 }
 
-export function TestimonialCard({ testimonial, onEditTestimonial, onDeleteTestimonial }: TestimonialCardProps) {
+export function TestimonialCard({ testimonial, onEditTestimonial, onDeleteTestimonial, isProcessing }: TestimonialCardProps) {
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -40,8 +41,9 @@ export function TestimonialCard({ testimonial, onEditTestimonial, onDeleteTestim
                 <User className="mr-2 h-5 w-5 text-primary" />
                 <CardTitle className="text-lg">{testimonial.author}</CardTitle>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => onEditTestimonial(testimonial)} className="p-1">
-                <Pencil className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={() => onEditTestimonial(testimonial)} className="p-1" disabled={isProcessing}>
+                {isProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
+                {!isProcessing && <Pencil className="h-4 w-4" />}
             </Button>
         </div>
       </CardHeader>
@@ -54,11 +56,12 @@ export function TestimonialCard({ testimonial, onEditTestimonial, onDeleteTestim
       <CardFooter className="p-4 bg-muted/50 border-t flex justify-between items-center">
         <div className="flex items-center text-xs text-muted-foreground">
           <CalendarDays className="mr-2 h-4 w-4" />
-          Added: {format(new Date(testimonial.createdAt), "MMM dd, yyyy")}
+          Added: {testimonial.createdAt ? format(new Date(testimonial.createdAt), "MMM dd, yyyy") : 'N/A'}
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm" className="gap-1">
+            <Button variant="destructive" size="sm" className="gap-1" disabled={isProcessing}>
+              {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
               <Trash2 className="h-3 w-3" />
               Delete
             </Button>
@@ -71,8 +74,11 @@ export function TestimonialCard({ testimonial, onEditTestimonial, onDeleteTestim
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Delete Testimonial</AlertDialogAction>
+              <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} disabled={isProcessing}>
+                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Delete Testimonial
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

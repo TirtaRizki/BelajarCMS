@@ -12,13 +12,13 @@ import type { TestimonialItem } from '@/types';
 import { MessageSquare, Loader2, User, Quote as QuoteIcon } from 'lucide-react';
 
 interface TestimonialFormProps {
-  onTestimonialAdded: (testimonial: TestimonialItem) => void;
+  onTestimonialAdded: (testimonialDraft: Omit<TestimonialItem, 'id' | 'createdAt'>) => void;
+  isProcessing: boolean;
 }
 
-export function TestimonialForm({ onTestimonialAdded }: TestimonialFormProps) {
+export function TestimonialForm({ onTestimonialAdded, isProcessing }: TestimonialFormProps) {
   const [author, setAuthor] = useState('');
   const [quote, setQuote] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (event: FormEvent) => {
@@ -32,25 +32,16 @@ export function TestimonialForm({ onTestimonialAdded }: TestimonialFormProps) {
       return;
     }
 
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    const newTestimonial: TestimonialItem = {
-      id: crypto.randomUUID(),
+    // ID and createdAt will be set by server/action
+    const newTestimonialDraft: Omit<TestimonialItem, 'id' | 'createdAt'> = {
       author,
       quote,
-      createdAt: new Date(),
     };
 
-    onTestimonialAdded(newTestimonial);
-    toast({
-      title: "Testimonial Added",
-      description: `Testimonial by ${author} has been successfully added.`,
-    });
-
+    onTestimonialAdded(newTestimonialDraft);
+    // Toast for successful add is handled by parent component
     setAuthor('');
     setQuote('');
-    setIsProcessing(false);
   };
 
   return (
@@ -76,6 +67,7 @@ export function TestimonialForm({ onTestimonialAdded }: TestimonialFormProps) {
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               required
+              disabled={isProcessing}
             />
           </div>
           <div>
@@ -90,6 +82,7 @@ export function TestimonialForm({ onTestimonialAdded }: TestimonialFormProps) {
               onChange={(e) => setQuote(e.target.value)}
               required
               rows={4}
+              disabled={isProcessing}
             />
           </div>
           <Button type="submit" className="w-full text-base py-3" disabled={isProcessing}>

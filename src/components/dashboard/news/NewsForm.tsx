@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,18 +12,27 @@ import type { NewsItem } from '@/types';
 import { PlusCircle, Loader2, Type, FileText as ContentIcon, Tag, Image as ImageIcon } from 'lucide-react';
 
 interface NewsFormProps {
-  onNewsAdded: (newsItem: NewsItem) => void;
-  initialData?: Partial<NewsItem>; // For editing
-  onCancel?: () => void; // For editing
+  onNewsAdded: (newsItemDraft: Omit<NewsItem, 'id' | 'publishedAt'>) => void;
+  initialData?: Partial<NewsItem>; 
+  onCancel?: () => void;
+  isProcessing: boolean;
 }
 
-export function NewsForm({ onNewsAdded, initialData, onCancel }: NewsFormProps) {
-  const [title, setTitle] = useState(initialData?.title || '');
-  const [content, setContent] = useState(initialData?.content || '');
-  const [category, setCategory] = useState(initialData?.category || '');
-  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
-  const [isProcessing, setIsProcessing] = useState(false);
+export function NewsForm({ onNewsAdded, initialData, onCancel, isProcessing }: NewsFormProps) {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      setContent(initialData.content || '');
+      setCategory(initialData.category || '');
+      setImageUrl(initialData.imageUrl || '');
+    }
+  }, [initialData]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -36,32 +45,21 @@ export function NewsForm({ onNewsAdded, initialData, onCancel }: NewsFormProps) 
       return;
     }
 
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    const newNewsItem: NewsItem = {
-      id: initialData?.id || crypto.randomUUID(),
+    const newsItemDraft: Omit<NewsItem, 'id' | 'publishedAt'> = {
       title,
       content,
       category,
       imageUrl: imageUrl.trim() || undefined,
-      publishedAt: initialData?.publishedAt || new Date(),
     };
 
-    onNewsAdded(newNewsItem); // This will handle both add and update logic in the parent
+    onNewsAdded(newsItemDraft);
     
-    toast({
-      title: initialData?.id ? "News Item Updated" : "News Item Added",
-      description: `"${title}" has been successfully ${initialData?.id ? 'updated' : 'added'}.`,
-    });
-
-    if (!initialData?.id) { // Reset form only if adding new
+    if (!initialData?.id) { 
         setTitle('');
         setContent('');
         setCategory('');
         setImageUrl('');
     }
-    setIsProcessing(false);
   };
 
   return (
@@ -88,6 +86,7 @@ export function NewsForm({ onNewsAdded, initialData, onCancel }: NewsFormProps) 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              disabled={isProcessing}
             />
           </div>
           <div>
@@ -101,6 +100,7 @@ export function NewsForm({ onNewsAdded, initialData, onCancel }: NewsFormProps) 
               onChange={(e) => setContent(e.target.value)}
               required
               rows={6}
+              disabled={isProcessing}
             />
           </div>
           <div>
@@ -114,6 +114,7 @@ export function NewsForm({ onNewsAdded, initialData, onCancel }: NewsFormProps) 
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
+              disabled={isProcessing}
             />
           </div>
           <div>
@@ -126,6 +127,7 @@ export function NewsForm({ onNewsAdded, initialData, onCancel }: NewsFormProps) 
               placeholder="https://example.com/image.png"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
+              disabled={isProcessing}
             />
           </div>
           <div className="flex gap-2 justify-end">

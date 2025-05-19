@@ -2,54 +2,50 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { ImageItem } from '@/types';
+import type { ImageItem, ServerActionResponse } from '@/types';
 import { ImageUploadForm } from '../ImageUploadForm'; 
 import { ImageCard } from '../ImageCard'; 
 import { EditImagePriceModal } from '../EditImagePriceModal';
-import { ImageIcon, Loader2 } from 'lucide-react'; // Info removed
-// Alert components removed
+import { ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-const IMAGE_STORAGE_KEY = 'nextadminlite_images';
+import { fetchImagesAction, uploadImageAction, updateImagePriceAction, deleteImageAction } from '@/app/actions/images';
 
 export function ImageManagementClient() {
   const [images, setImages] = useState<ImageItem[]>([]);
-  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // For initial data load
+  const [isProcessing, setIsProcessing] = useState(false); // For CUD operations
   const { toast } = useToast();
 
   const [isEditPriceModalOpen, setIsEditPriceModalOpen] = useState(false);
   const [editingImage, setEditingImage] = useState<ImageItem | null>(null);
 
   useEffect(() => {
-    setIsClient(true);
-    try {
-      const storedImages = localStorage.getItem(IMAGE_STORAGE_KEY);
-      if (storedImages) {
-        const parsedImages = JSON.parse(storedImages).map((img: ImageItem) => ({
-          ...img,
-          uploadedAt: new Date(img.uploadedAt) 
-        }));
-        setImages(parsedImages);
+    const loadImages = async () => {
+      setIsLoading(true);
+      const response = await fetchImagesAction();
+      if (response.success && response.data) {
+        setImages(response.data.map(img => ({...img, uploadedAt: new Date(img.uploadedAt)})));
+      } else {
+        toast({ title: "Error", description: response.error || "Could not load images.", variant: "destructive" });
       }
-    } catch (error) {
-      console.error("Failed to load images from localStorage:", error);
-       toast({ title: "Loading Error", description: "Could not load image data from local storage.", variant: "destructive" });
-    }
+      setIsLoading(false);
+    };
+    loadImages();
   }, [toast]);
 
-  useEffect(() => {
-    if (isClient) {
-      try {
-        localStorage.setItem(IMAGE_STORAGE_KEY, JSON.stringify(images));
-      } catch (error) {
-        console.error("Failed to save images to localStorage:", error);
-        toast({ title: "Storage Error", description: "Could not save image data.", variant: "destructive" });
-      }
+  const handleImageUploaded = async (newImageDraft: Omit<ImageItem, 'id'|'uploadedAt'>) => {
+    setIsProcessing(true);
+    const response = await uploadImageAction(newImageDraft);
+    if (response.success && response.data) {
+      setImages((prevImages) => [response.data!, ...prevImages].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()));
+       toast({
+        title: "Image Uploaded",
+        description: `${response.data.name} has been uploaded. Price can be set from the image card.`,
+      });
+    } else {
+      toast({ title: "Upload Error", description: response.error || "Could not upload image.", variant: "destructive" });
     }
-  }, [images, isClient, toast]);
-
-  const handleImageUploaded = (newImage: ImageItem) => {
-    setImages((prevImages) => [newImage, ...prevImages].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()));
+    setIsProcessing(false);
   };
 
   const handleOpenEditPriceModal = (image: ImageItem) => {
@@ -57,23 +53,43 @@ export function ImageManagementClient() {
     setIsEditPriceModalOpen(true);
   };
 
-  const handleUpdateImagePrice = (imageId: string, newPrice: string) => {
-    setImages((prevImages) =>
-      prevImages.map((img) =>
-        img.id === imageId ? { ...img, price: newPrice } : img
-      )
-    );
+  const handleUpdateImagePrice = async (imageId: string, newPrice: string) => {
+    setIsProcessing(true);
+    const response = await updateImagePriceAction(imageId, newPrice);
+    if (response.success && response.data) {
+      setImages((prevImages) =>
+        prevImages.map((img) =>
+          img.id === imageId ? { ...img, price: newPrice, uploadedAt: new Date(response.data!.uploadedAt) } : img
+        )
+      );
+      toast({
+        title: "Price Updated",
+        description: `Price for ${response.data.name} has been updated.`,
+      });
+    } else {
+       toast({ title: "Update Error", description: response.error || "Could not update price.", variant: "destructive" });
+    }
+    setIsProcessing(false);
+    setIsEditPriceModalOpen(false);
   };
   
-  const handleDeleteImage = (imageId: string) => {
-    setImages((prevImages) => prevImages.filter((img) => img.id !== imageId));
-    toast({ title: "Image Deleted", description: "The image has been successfully deleted." });
+  const handleDeleteImage = async (imageId: string) => {
+    setIsProcessing(true);
+    const response = await deleteImageAction(imageId);
+    if (response.success) {
+      setImages((prevImages) => prevImages.filter((img) => img.id !== imageId));
+      toast({ title: "Image Deleted", description: "The image has been successfully deleted." });
+    } else {
+      toast({ title: "Delete Error", description: response.error || "Could not delete image.", variant: "destructive" });
+    }
+    setIsProcessing(false);
   };
 
-  if (!isClient) {
+  if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-2">Loading images...</p>
       </div>
     );
   }
@@ -83,8 +99,7 @@ export function ImageManagementClient() {
       <h1 className="text-3xl font-bold mb-6">Image Management</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-6">
-          <ImageUploadForm onImageUploaded={handleImageUploaded} />
-          {/* Demo Information Alert removed */}
+          <ImageUploadForm onImageUploaded={handleImageUploaded} isProcessing={isProcessing} />
         </div>
         
         <div className="lg:col-span-2">
@@ -101,7 +116,8 @@ export function ImageManagementClient() {
                   key={image.id} 
                   image={image} 
                   onEditPrice={handleOpenEditPriceModal}
-                  onDeleteImage={handleDeleteImage} 
+                  onDeleteImage={handleDeleteImage}
+                  isProcessing={isProcessing}
                 />
               ))}
             </div>
@@ -115,6 +131,7 @@ export function ImageManagementClient() {
           onOpenChange={setIsEditPriceModalOpen}
           image={editingImage}
           onSave={handleUpdateImagePrice}
+          isProcessing={isProcessing}
         />
       )}
     </div>

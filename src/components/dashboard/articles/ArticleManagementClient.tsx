@@ -2,19 +2,19 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { ArticleItem } from '@/types';
+import type { ArticleItem, ServerActionResponse } from '@/types';
 import { ArticleForm } from './ArticleForm';
 import { ArticleCard } from './ArticleCard';
 import { EditArticleModal } from './EditArticleModal';
 import { FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-
-const ARTICLES_STORAGE_KEY = 'nextadminlite_articles';
+import { fetchArticlesAction, addArticleAction, updateArticleAction, deleteArticleAction } from '@/app/actions/articles';
 
 export function ArticleManagementClient() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
-  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const [isEditArticleModalOpen, setIsEditArticleModalOpen] = useState(false);
@@ -22,36 +22,34 @@ export function ArticleManagementClient() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-    try {
-      const storedArticles = localStorage.getItem(ARTICLES_STORAGE_KEY);
-      if (storedArticles) {
-        const parsedArticles = JSON.parse(storedArticles).map((item: ArticleItem) => ({
+    const loadArticles = async () => {
+      setIsLoading(true);
+      const response = await fetchArticlesAction();
+      if (response.success && response.data) {
+        setArticles(response.data.map(item => ({
           ...item,
-          createdAt: new Date(item.createdAt) 
-        }));
-        setArticles(parsedArticles);
+          createdAt: new Date(item.createdAt),
+          updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(item.createdAt) // Handle potential undefined updatedAt
+        })));
+      } else {
+        toast({ title: "Error", description: response.error || "Could not load articles.", variant: "destructive" });
       }
-    } catch (error) {
-      console.error("Failed to load articles from localStorage:", error);
-      toast({ title: "Loading Error", description: "Could not load article data.", variant: "destructive" });
-    }
+      setIsLoading(false);
+    };
+    loadArticles();
   }, [toast]);
 
-  useEffect(() => {
-    if (isClient) {
-      try {
-        localStorage.setItem(ARTICLES_STORAGE_KEY, JSON.stringify(articles));
-      } catch (error) {
-        console.error("Failed to save articles to localStorage:", error);
-        toast({ title: "Storage Error", description: "Could not save article data.", variant: "destructive" });
-      }
+  const handleArticleAdded = async (newArticleDraft: Omit<ArticleItem, 'id' | 'createdAt' | 'updatedAt'>) => {
+    setIsProcessing(true);
+    const response = await addArticleAction(newArticleDraft);
+    if (response.success && response.data) {
+      setArticles((prev) => [response.data!, ...prev].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      toast({ title: "Article Added", description: `"${response.data.title}" has been successfully added.`});
+      setShowForm(false);
+    } else {
+      toast({ title: "Add Error", description: response.error || "Could not add article.", variant: "destructive" });
     }
-  }, [articles, isClient, toast]);
-
-  const handleArticleAdded = (newArticle: ArticleItem) => {
-    setArticles((prevArticles) => [newArticle, ...prevArticles].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    setShowForm(false);
+    setIsProcessing(false);
   };
 
   const handleOpenEditArticleModal = (article: ArticleItem) => {
@@ -59,23 +57,40 @@ export function ArticleManagementClient() {
     setIsEditArticleModalOpen(true);
   };
 
-  const handleUpdateArticle = (articleId: string, updatedData: Partial<Omit<ArticleItem, 'id' | 'createdAt'>>) => {
-    setArticles((prevArticles) =>
-      prevArticles.map((item) =>
-        item.id === articleId ? { ...item, ...updatedData, createdAt: new Date() } : item // Update createdAt on edit
-      )
-    );
+  const handleUpdateArticle = async (articleId: string, updatedData: Partial<Omit<ArticleItem, 'id' | 'createdAt' | 'updatedAt'>>) => {
+    setIsProcessing(true);
+    const response = await updateArticleAction(articleId, updatedData);
+    if (response.success && response.data) {
+      setArticles((prev) =>
+        prev.map((item) =>
+          item.id === articleId ? { ...response.data!, createdAt: new Date(response.data!.createdAt), updatedAt: new Date(response.data!.updatedAt!) } : item
+        )
+      );
+      toast({ title: "Article Updated", description: `"${response.data.title}" has been updated.`});
+    } else {
+      toast({ title: "Update Error", description: response.error || "Could not update article.", variant: "destructive" });
+    }
+    setIsProcessing(false);
+    setIsEditArticleModalOpen(false);
   };
 
-  const handleDeleteArticle = (articleId: string) => {
-    setArticles((prevArticles) => prevArticles.filter((item) => item.id !== articleId));
-    toast({ title: "Article Deleted", description: "The article has been successfully deleted." });
+  const handleDeleteArticle = async (articleId: string) => {
+    setIsProcessing(true);
+    const response = await deleteArticleAction(articleId);
+    if (response.success) {
+      setArticles((prev) => prev.filter((item) => item.id !== articleId));
+      toast({ title: "Article Deleted", description: "The article has been successfully deleted." });
+    } else {
+      toast({ title: "Delete Error", description: response.error || "Could not delete article.", variant: "destructive" });
+    }
+    setIsProcessing(false);
   };
 
-  if (!isClient) {
+  if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-2">Loading articles...</p>
       </div>
     );
   }
@@ -84,14 +99,15 @@ export function ArticleManagementClient() {
     <div className="container mx-auto px-0">
        <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Article Management (Konten)</h1>
-        <Button onClick={() => setShowForm(!showForm)}>
+        <Button onClick={() => setShowForm(!showForm)} disabled={isProcessing}>
+          {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {showForm ? 'Cancel' : 'Add New Article'}
         </Button>
       </div>
 
       {showForm && (
         <div className="mb-8">
-          <ArticleForm onArticleAdded={handleArticleAdded} />
+          <ArticleForm onArticleAdded={handleArticleAdded} isProcessing={isProcessing} />
         </div>
       )}
 
@@ -109,6 +125,7 @@ export function ArticleManagementClient() {
               article={article} 
               onEditArticle={handleOpenEditArticleModal}
               onDeleteArticle={handleDeleteArticle} 
+              isProcessing={isProcessing}
             />
           ))}
         </div>
@@ -120,6 +137,7 @@ export function ArticleManagementClient() {
           onOpenChange={setIsEditArticleModalOpen}
           article={editingArticle}
           onSave={handleUpdateArticle}
+          isProcessing={isProcessing}
         />
       )}
     </div>

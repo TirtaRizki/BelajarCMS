@@ -15,21 +15,21 @@ interface EditArticleModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   article: ArticleItem | null;
-  onSave: (articleId: string, updatedData: Partial<Omit<ArticleItem, 'id' | 'createdAt'>>) => void;
+  onSave: (articleId: string, updatedData: Partial<Omit<ArticleItem, 'id' | 'createdAt' | 'updatedAt'>>) => void;
+  isProcessing: boolean;
 }
 
-export function EditArticleModal({ isOpen, onOpenChange, article, onSave }: EditArticleModalProps) {
+export function EditArticleModal({ isOpen, onOpenChange, article, onSave, isProcessing }: EditArticleModalProps) {
   if (!article) return null;
 
-  const handleSave = (updatedItem: ArticleItem) => {
-    const { id, createdAt, ...dataToSave } = updatedItem;
-    onSave(article.id, dataToSave);
-    onOpenChange(false);
+  const handleSave = (updatedItemDraft: Omit<ArticleItem, 'id' | 'createdAt' | 'updatedAt'>) => {
+    onSave(article.id, updatedItemDraft);
+    // Parent handles closing modal and toast
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl"> {/* Wider for article form */}
+    <Dialog open={isOpen} onOpenChange={(open) => !isProcessing && onOpenChange(open)}>
+      <DialogContent className="sm:max-w-3xl"> 
         <DialogHeader>
           <DialogTitle>Edit Article</DialogTitle>
           <DialogDescription>
@@ -41,6 +41,7 @@ export function EditArticleModal({ isOpen, onOpenChange, article, onSave }: Edit
             initialData={article} 
             onArticleAdded={handleSave} 
             onCancel={() => onOpenChange(false)}
+            isProcessing={isProcessing}
         />
         
       </DialogContent>
