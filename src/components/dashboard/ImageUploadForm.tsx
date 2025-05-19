@@ -12,7 +12,7 @@ import { UploadCloud, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 interface ImageUploadFormProps {
-  onImageUploaded: (imageItemDraft: Omit<ImageItem, 'id' | 'uploadedAt'>) => void;
+  onImageUploaded: (imageItemDraft: Omit<ImageItem, 'id' | 'uploadedAt' | 'tags'>) => void;
   isProcessing: boolean;
 }
 
@@ -60,13 +60,12 @@ export function ImageUploadForm({ onImageUploaded, isProcessing }: ImageUploadFo
 
     try {
       // Note: id and uploadedAt will be set by the server/action
-      const newImageDraft: Omit<ImageItem, 'id' | 'uploadedAt'> = {
+      const newImageDraft: Omit<ImageItem, 'id' | 'uploadedAt' | 'tags'> = {
         dataUri: preview,
         name: file.name,
         price: "Not set",
       };
       onImageUploaded(newImageDraft);
-      // Toast for successful upload is handled by the parent component after server action
       setFile(null);
       setPreview(null);
       (event.target as HTMLFormElement).reset();
@@ -88,7 +87,7 @@ export function ImageUploadForm({ onImageUploaded, isProcessing }: ImageUploadFo
           <UploadCloud className="mr-3 h-7 w-7 text-primary" />
           Upload New Image
         </CardTitle>
-        <CardDescription>Add an image (max 20MB). Price can be set later.</CardDescription>
+        <CardDescription>Create a new product photo entry by uploading an image (max 20MB). Price can be set later.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
