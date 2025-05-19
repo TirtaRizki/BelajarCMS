@@ -3,9 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import type { ImageItem } from '@/types';
-import { ImageUploadForm } from './ImageUploadForm';
-import { ImageCard } from './ImageCard';
-import { EditImagePriceModal } from './EditImagePriceModal';
+import { ImageUploadForm } from '../ImageUploadForm'; // Corrected path
+import { ImageCard } from '../ImageCard'; // Corrected path
+import { EditImagePriceModal } from '../EditImagePriceModal';
 import { ImageIcon, Info, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
