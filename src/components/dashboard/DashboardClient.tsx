@@ -6,7 +6,8 @@ import type { ImageItem } from '@/types';
 import { ImageUploadForm } from './ImageUploadForm';
 import { ImageCard } from './ImageCard';
 import { ImageIcon, Info } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 
 const IMAGE_STORAGE_KEY = 'nextadminlite_images';
 
