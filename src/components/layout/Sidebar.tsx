@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   useSidebar,
-  SheetTitle, // Import SheetTitle
+  // SheetTitle was removed from here, it's handled by UiSidebar directly
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -44,11 +44,17 @@ export function Sidebar() {
       sheetTitle="Askhajaya Menu" 
     >
       <UiSidebarHeader className="p-2 flex justify-between items-center">
-        <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:hidden">
+        <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:group-data-[state=expanded]:inline group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden">
            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
           <span className="text-lg font-semibold">Askhajaya</span>
+        </Link>
+         {/* Simplified logo for collapsed state, or can be hidden if text shows beside icon buttons */}
+        <Link href="/dashboard" className="items-center gap-2 group-data-[collapsible=icon]:group-data-[state=expanded]:hidden group-data-[collapsible=icon]:group-data-[state=collapsed]:flex hidden md:flex justify-center w-full">
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+          </svg>
         </Link>
         <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">
             {open ? <PanelLeftClose /> : <PanelLeftOpen />}
@@ -71,7 +77,8 @@ export function Sidebar() {
                       >
                         <a>
                           <item.icon className="h-5 w-5" />
-                          <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
+                          {/* Removed hiding class to always show text */}
+                          <span>{item.label}</span>
                         </a>
                       </SidebarMenuButton>
                     </Link>
@@ -85,12 +92,13 @@ export function Sidebar() {
       <SidebarFooter className="p-2">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-2 group-data-[collapsible=icon]:justify-center"
+          className="w-full justify-start gap-2 group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-start" // Keep text left-aligned when collapsed
           onClick={logout}
           title="Logout"
         >
           <LogOut className="h-5 w-5" />
-          <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+           {/* Removed hiding class to always show text */}
+          <span>Logout</span>
         </Button>
       </SidebarFooter>
     </UiSidebar>
