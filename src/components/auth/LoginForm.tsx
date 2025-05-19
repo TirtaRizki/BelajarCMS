@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn, Loader2 } from 'lucide-react';
+import { LogIn, Loader2, AlertTriangle, UserPlus } from 'lucide-react';
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
@@ -39,6 +39,36 @@ export function LoginForm() {
     }
   };
 
+  const handleForgotPassword = () => {
+    toast({
+      title: "Forgot Password",
+      description: "Password recovery is not implemented in this demo. In a real app, instructions would be sent to your email.",
+      duration: 5000,
+      variant: "default", // Use 'default' or remove for standard toast
+      action: ( // Optional: Add an icon to the toast
+        <div className="flex items-center">
+          <AlertTriangle className="h-5 w-5 mr-2 text-yellow-500" />
+          <span>Demo Feature</span>
+        </div>
+      )
+    });
+  };
+
+  const handleCreateAccount = () => {
+    toast({
+      title: "Create Account",
+      description: "Account creation is not implemented in this demo. In a real app, this would lead to a sign-up page.",
+      duration: 5000,
+      variant: "default",
+      action: (
+        <div className="flex items-center">
+          <UserPlus className="h-5 w-5 mr-2 text-blue-500" />
+          <span>Demo Feature</span>
+        </div>
+      )
+    });
+  };
+
   return (
     <Card className="w-full max-w-md shadow-xl">
       <CardHeader className="text-center">
@@ -65,7 +95,17 @@ export function LoginForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Button
+                type="button"
+                variant="link"
+                className="px-0 text-sm h-auto text-primary hover:text-primary/80"
+                onClick={handleForgotPassword}
+              >
+                Forgot password?
+              </Button>
+            </div>
             <Input
               id="password"
               type="password"
@@ -86,10 +126,21 @@ export function LoginForm() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="text-center text-sm">
+      <CardFooter className="flex flex-col items-center text-sm space-y-2 pt-4">
         <p className="text-muted-foreground">
           Demo: any username/password will work.
         </p>
+        <div className="text-muted-foreground">
+          Don't have an account?{' '}
+          <Button
+            type="button"
+            variant="link"
+            className="px-0 text-sm h-auto font-semibold text-primary hover:text-primary/80"
+            onClick={handleCreateAccount}
+          >
+            Sign Up
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
