@@ -5,10 +5,10 @@ import { useState, useEffect } from 'react';
 import type { ImageItem, ServerActionResponse } from '@/types';
 import { ImageUploadForm } from '../ImageUploadForm'; 
 import { ImageCard } from '../ImageCard'; 
-import { EditImagePriceModal } from '../EditImagePriceModal';
+import { EditImageModal } from '../EditImageModal'; // Renamed from EditImagePriceModal
 import { ImageIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchImagesAction, uploadImageAction, updateImagePriceAction, deleteImageAction } from '@/app/actions/images';
+import { fetchImagesAction, uploadImageAction, updateImageAction, deleteImageAction } from '@/app/actions/images'; // Updated to updateImageAction
 
 export function ImageManagementClient() {
   const [images, setImages] = useState<ImageItem[]>([]);
@@ -16,7 +16,7 @@ export function ImageManagementClient() {
   const [isProcessing, setIsProcessing] = useState(false); // For CUD operations
   const { toast } = useToast();
 
-  const [isEditPriceModalOpen, setIsEditPriceModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Renamed from isEditPriceModalOpen
   const [editingImage, setEditingImage] = useState<ImageItem | null>(null);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export function ImageManagementClient() {
       setImages((prevImages) => [response.data!, ...prevImages].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()));
        toast({
         title: "Image Uploaded",
-        description: `${response.data.name} has been uploaded. Price can be set from the image card.`,
+        description: `${response.data.name} has been uploaded.`,
       });
     } else {
       toast({ title: "Upload Error", description: response.error || "Could not upload image.", variant: "destructive" });
@@ -48,29 +48,29 @@ export function ImageManagementClient() {
     setIsProcessing(false);
   };
 
-  const handleOpenEditPriceModal = (image: ImageItem) => {
+  const handleOpenEditModal = (image: ImageItem) => { // Renamed from handleOpenEditPriceModal
     setEditingImage(image);
-    setIsEditPriceModalOpen(true);
+    setIsEditModalOpen(true); // Renamed
   };
 
-  const handleUpdateImagePrice = async (imageId: string, newPrice: string) => {
+  const handleUpdateImage = async (imageId: string, updates: Partial<Pick<ImageItem, 'name' | 'price'>>) => { // Renamed from handleUpdateImagePrice
     setIsProcessing(true);
-    const response = await updateImagePriceAction(imageId, newPrice);
+    const response = await updateImageAction(imageId, updates); // Use general updateImageAction
     if (response.success && response.data) {
       setImages((prevImages) =>
         prevImages.map((img) =>
-          img.id === imageId ? { ...img, price: newPrice, uploadedAt: new Date(response.data!.uploadedAt) } : img
+          img.id === imageId ? { ...img, ...response.data, uploadedAt: new Date(response.data!.uploadedAt) } : img
         )
       );
       toast({
-        title: "Price Updated",
-        description: `Price for ${response.data.name} has been updated.`,
+        title: "Image Updated",
+        description: `Details for ${response.data.name} have been updated.`,
       });
     } else {
-       toast({ title: "Update Error", description: response.error || "Could not update price.", variant: "destructive" });
+       toast({ title: "Update Error", description: response.error || "Could not update image details.", variant: "destructive" });
     }
     setIsProcessing(false);
-    setIsEditPriceModalOpen(false);
+    setIsEditModalOpen(false); // Renamed
   };
   
   const handleDeleteImage = async (imageId: string) => {
@@ -115,7 +115,7 @@ export function ImageManagementClient() {
                 <ImageCard 
                   key={image.id} 
                   image={image} 
-                  onEditPrice={handleOpenEditPriceModal}
+                  onEdit={handleOpenEditModal} // Changed from onEditPrice
                   onDeleteImage={handleDeleteImage}
                   isProcessing={isProcessing}
                 />
@@ -126,11 +126,11 @@ export function ImageManagementClient() {
       </div>
 
       {editingImage && (
-        <EditImagePriceModal
-          isOpen={isEditPriceModalOpen}
-          onOpenChange={setIsEditPriceModalOpen}
+        <EditImageModal // Renamed
+          isOpen={isEditModalOpen} // Renamed
+          onOpenChange={setIsEditModalOpen} // Renamed
           image={editingImage}
-          onSave={handleUpdateImagePrice}
+          onSave={handleUpdateImage} // Changed from handleUpdateImagePrice
           isProcessing={isProcessing}
         />
       )}

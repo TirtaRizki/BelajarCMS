@@ -35,24 +35,31 @@ export async function uploadImageAction(newImage: Omit<ImageItem, 'id' | 'upload
   return { success: true, data: imageToSave };
 }
 
-export async function updateImagePriceAction(imageId: string, newPrice: string): Promise<ServerActionResponse<ImageItem>> {
-  console.log('Server Action: updateImagePriceAction for ID', imageId, 'to price', newPrice);
+export async function updateImageAction(
+  imageId: string,
+  updates: Partial<Pick<ImageItem, 'name' | 'price'>>
+): Promise<ServerActionResponse<ImageItem>> {
+  console.log('Server Action: updateImageAction for ID', imageId, 'with updates:', updates);
   await new Promise(resolve => setTimeout(resolve, 50)); // Reduced delay
 
   // const imageIndex = mockImageStore.findIndex(img => img.id === imageId);
   // if (imageIndex === -1) {
   //   return { success: false, error: "Image not found or not authorized." };
   // }
-  // mockImageStore[imageIndex] = { ...mockImageStore[imageIndex], price: newPrice, uploadedAt: new Date(mockImageStore[imageIndex].uploadedAt) };
+  // mockImageStore[imageIndex] = { 
+  //   ...mockImageStore[imageIndex], 
+  //   ...updates, 
+  //   uploadedAt: new Date(mockImageStore[imageIndex].uploadedAt) 
+  // };
   // return { success: true, data: mockImageStore[imageIndex] };
 
   // Mock update
   const mockUpdatedImage: ImageItem = {
     id: imageId,
-    name: `Image ${imageId.substring(0,4)}`,
-    dataUri: 'https://placehold.co/600x400.png',
-    price: newPrice,
-    uploadedAt: new Date()
+    name: updates.name || `Image ${imageId.substring(0,4)}`,
+    dataUri: 'https://placehold.co/600x400.png', // This would be fetched from the existing item
+    price: updates.price !== undefined ? updates.price : "Not set", // Handle price update
+    uploadedAt: new Date() // Or fetch existing uploadedAt
   };
   return { success: true, data: mockUpdatedImage };
 }
@@ -70,4 +77,3 @@ export async function deleteImageAction(imageId: string): Promise<ServerActionRe
   console.log('Server Action: image deletion successful for', imageId);
   return { success: true };
 }
-
