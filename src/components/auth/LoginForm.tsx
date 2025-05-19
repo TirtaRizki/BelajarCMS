@@ -9,22 +9,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import { LogIn, Loader2, AlertCircle } from 'lucide-react';
+// import Link from 'next/link'; // Removed as per previous request
 
 export function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  // Local loading state for the form submission, AuthContext has its own global isLoading
+  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const { login, authError } = useAuth(); // Get authError from context
   const router = useRouter();
   const { toast } = useToast();
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     const success = await login(username, password);
-    setIsLoading(false);
+    setIsSubmitting(false);
     if (success) {
       router.push('/dashboard');
       toast({
@@ -32,9 +33,11 @@ export function LoginForm() {
         description: "Welcome to Askhajaya!",
       });
     } else {
+      // Error is now handled by authError from context, but we can still show a toast
+      // The specific error message will come from authError
       toast({
         title: "Login Failed",
-        description: "Invalid username or password. Please try again.",
+        description: authError || "Invalid username or password. Please try again.",
         variant: "destructive",
       });
     }
@@ -53,6 +56,12 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {authError && (
+            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              <p>{authError}</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
             <Input
@@ -68,7 +77,6 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              {/* Removed Forgot Password link */}
             </div>
             <Input
               id="password"
@@ -80,8 +88,8 @@ export function LoginForm() {
               className="text-base"
             />
           </div>
-          <Button type="submit" className="w-full text-base py-3" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" className="w-full text-base py-3" disabled={isSubmitting}>
+            {isSubmitting ? (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             ) : (
               <LogIn className="mr-2 h-5 w-5" />
@@ -91,9 +99,8 @@ export function LoginForm() {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center text-sm space-y-2 pt-4">
-        {/* Removed Sign Up link */}
+        {/* Sign Up and Forgot Password links were previously removed */}
       </CardFooter>
     </Card>
   );
 }
-
