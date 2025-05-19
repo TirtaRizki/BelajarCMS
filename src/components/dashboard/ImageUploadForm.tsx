@@ -24,10 +24,10 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 500 * 1024) { // 500KB limit
+      if (selectedFile.size > 20 * 1024 * 1024) { // 20MB limit
         toast({
           title: "File too large",
-          description: "Please upload an image smaller than 500KB. Local storage capacity is limited.",
+          description: "Please upload an image smaller than 20MB. Note: localStorage capacity is limited and large files may cause issues.",
           variant: "destructive",
         });
         setFile(null);
@@ -96,7 +96,7 @@ export function ImageUploadForm({ onImageUploaded }: ImageUploadFormProps) {
           <UploadCloud className="mr-3 h-7 w-7 text-primary" />
           Upload New Image
         </CardTitle>
-        <CardDescription>Add an image (max 500KB). Price can be set later. Tags are no longer AI-generated.</CardDescription>
+        <CardDescription>Add an image (max 20MB). Price can be set later. Tags are no longer AI-generated.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
