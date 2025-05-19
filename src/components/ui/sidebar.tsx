@@ -24,7 +24,7 @@ const SIDEBAR_COOKIE_NAME = "sidebar_state_v2"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3.5rem" // This width might be tight for icon + text. Text will be truncated.
+const SIDEBAR_WIDTH_ICON = "3.5rem" 
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContextValue = {
@@ -222,7 +222,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
       <div
         ref={ref}
         className={cn(
-            "group peer hidden md:block text-sidebar-foreground",
+            "group/sidebar peer hidden md:block text-sidebar-foreground", // Added group/sidebar here
             side === "left" ? "pr-[var(--sidebar-content-offset,0px)]" : "pl-[var(--sidebar-content-offset,0px)]",
             className
         )}
@@ -537,7 +537,25 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-medium data-[active=true]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:group-data-[state=collapsed]:h-8 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+  [
+    "peer/menu-button", "flex", "w-full", "items-center", "gap-2", "overflow-hidden", "rounded-md", "text-left",
+    "outline-none", "ring-sidebar-ring", "transition-colors",
+    "hover:bg-sidebar-accent", "hover:text-sidebar-accent-foreground",
+    "focus-visible:ring-2", "active:bg-sidebar-accent", "active:text-sidebar-accent-foreground",
+    "disabled:pointer-events-none", "disabled:opacity-50",
+    "group-has-[[data-sidebar=menu-action]]/menu-item:pr-8",
+    "aria-disabled:pointer-events-none", "aria-disabled:opacity-50",
+    "data-[active=true]:bg-sidebar-primary", "data-[active=true]:font-medium", "data-[active=true]:text-sidebar-primary-foreground",
+    "data-[state=open]:hover:bg-sidebar-accent", "data-[state=open]:hover:text-sidebar-accent-foreground",
+    "[&>span:last-child]:truncate", "[&>svg]:size-4", "[&>svg]:shrink-0",
+    "p-2", // Default padding for expanded state
+
+    // Collapsed state for icon view:
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-8", // Fixed width for icon button
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:p-0", // No padding, icon centered
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center",
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:[&>span:last-child]:hidden" // Hide text span
+  ],
   {
     variants: {
       variant: {
@@ -545,10 +563,10 @@ const sidebarMenuButtonVariants = cva(
         outline:
           "bg-transparent border border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:border-sidebar-accent",
       },
-      size: {
+      size: { // These apply to height and text size, collapsed state handles width and padding
         default: "h-8 text-sm",
         sm: "h-7 text-xs",
-        lg: "h-10 text-base group-data-[collapsible=icon]:group-data-[state=collapsed]:!p-0",
+        lg: "h-10 text-base",
       },
     },
     defaultVariants: {
@@ -801,3 +819,4 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
