@@ -34,7 +34,7 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { setOpen, open, isMobile, state: sidebarState } = useSidebar(); // Added sidebarState
+  const { setOpen, open, isMobile, state: sidebarState } = useSidebar(); 
 
   return (
     <UiSidebar
@@ -44,10 +44,9 @@ export function Sidebar() {
       sheetTitle="Askhajaya Menu"
     >
       <UiSidebarHeader className="p-2 flex justify-between items-center">
-        {/* Desktop Logo/Title - shows full when expanded, icon when collapsed */}
         <Link href="/dashboard" className={cn(
             "flex items-center gap-2",
-            isMobile && "hidden", // Hide this Link entirely on mobile as title is in SheetHeader
+            isMobile && "hidden", 
             "group-data-[collapsible=icon]:group-data-[state=expanded]:inline-flex",
             "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-full group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center"
             )}>
@@ -56,11 +55,10 @@ export function Sidebar() {
           </svg>
           <span className={cn(
               "text-lg font-semibold",
-              "group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden" // Hide text when collapsed
+              "group-data-[collapsible=icon]:group-data-[state=collapsed]:hidden" 
             )}>Askhajaya</span>
         </Link>
 
-        {/* Mobile Menu Toggle - Replaces the logo/title area on mobile to provide a close button */}
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={() => setOpen(!open)} className="md:hidden">
               {open ? <PanelLeftClose /> : <PanelLeftOpen />}
@@ -100,11 +98,10 @@ export function Sidebar() {
           variant="ghost"
           className={cn(
             "w-full justify-start gap-2 text-left p-2 h-8 text-sm",
-            // Apply collapsed styles based on sidebarState for non-mobile
             !isMobile && sidebarState === "collapsed" && "w-8 h-8 p-0 justify-center"
           )}
           onClick={logout}
-          title="Logout" // Tooltip for collapsed state
+          title="Logout" 
         >
           <LogOut className="h-4 w-4 shrink-0" />
           <span className={cn(
@@ -116,3 +113,4 @@ export function Sidebar() {
     </UiSidebar>
   );
 }
+

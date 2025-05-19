@@ -4,7 +4,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react" // PanelLeft removed
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react" 
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -144,7 +144,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar", // Changed from has-[[data-variant=sidebar-inset]]
+              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
               className
             )}
             ref={ref}
@@ -244,9 +244,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
             side === "left" ? "left-0" : "right-0",
             variant === "floating" || variant === "inset" ? "p-2" : "",
             (variant === "floating" || variant === "inset") && (open ? "" : "!w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_)]"),
-            // className // This className was on the outer div, moving specific sidebar styling to inner div
           )}
-          {...props} // Props are for the outer div, not the inner one for styling
+          {...props} 
         >
           <div
             data-sidebar="sidebar"
@@ -256,7 +255,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
                 (variant === "sidebar" && side === "right") && "border-l border-sidebar-border",
                 variant === "floating" && "rounded-lg border border-sidebar-border shadow-md",
                 variant === "inset" && "rounded-lg border border-sidebar-border",
-                className // Apply className here for actual sidebar styling
+                className 
             )}
           >
             {children}
@@ -548,14 +547,14 @@ const sidebarMenuButtonVariants = cva(
     "aria-disabled:pointer-events-none", "aria-disabled:opacity-50",
     "data-[active=true]:bg-sidebar-primary", "data-[active=true]:font-medium", "data-[active=true]:text-sidebar-primary-foreground",
     "data-[state=open]:hover:bg-sidebar-accent", "data-[state=open]:hover:text-sidebar-accent-foreground",
-    "[&>span:last-child]:truncate", "[&>svg]:size-4", "[&>svg]:shrink-0",
+    "[&>svg]:size-4", "[&>svg]:shrink-0",
     "p-2",
 
     // Collapsed state for icon view:
     "group-data-[collapsible=icon]:group-data-[state=collapsed]:w-8",
     "group-data-[collapsible=icon]:group-data-[state=collapsed]:p-0",
     "group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center",
-    "group-data-[collapsible=icon]:group-data-[state=collapsed]:[&>span:last-child]:hidden"
+    "group-data-[collapsible=icon]:group-data-[state=collapsed]:[&>span]:hidden" // Target any span, not just last-child
   ],
   {
     variants: {
@@ -820,3 +819,4 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
