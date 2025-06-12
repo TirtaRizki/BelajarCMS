@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, LibraryBig, MessageSquare, Loader2, Newspaper, FileText, Users, Eye, Link2 } from "lucide-react";
-import type { ServerActionResponse, MediaItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
+import { BarChart3, LibraryBig, MessageSquare, Loader2, Newspaper, FileText, Users, Eye, Link2, Package } from "lucide-react";
+import type { ServerActionResponse, MediaItem, TestimonialItem, NewsItem, ArticleItem, ProductItem } from '@/types';
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RechartsLineChart } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,6 +12,7 @@ import { fetchMediaItemsAction } from '@/app/actions/media';
 import { fetchTestimonialsAction } from '@/app/actions/testimonials';
 import { fetchNewsItemsAction } from '@/app/actions/news';
 import { fetchArticlesAction } from '@/app/actions/articles';
+import { fetchProductsAction } from '@/app/actions/products';
 import { useToast } from '@/hooks/use-toast';
 
 interface StatData {
@@ -19,6 +20,7 @@ interface StatData {
   testimonials: number | null;
   news: number | null;
   articles: number | null;
+  products: number | null;
 }
 
 // Mock data for advanced analytics
@@ -33,6 +35,7 @@ const mockTrafficData = [
 ];
 
 const mockContentViews = [
+  { contentName: 'Our Best Selling Keripik', views: Math.floor(Math.random() * 1500) + 700, type: 'Product' },
   { contentName: 'Introduction to Next.js', views: Math.floor(Math.random() * 1000) + 500, type: 'Article' },
   { contentName: 'Summer Collection Launch', views: Math.floor(Math.random() * 800) + 400, type: 'News' },
   { contentName: 'Product Showcase Video', views: Math.floor(Math.random() * 1200) + 600, type: 'Media' },
@@ -42,10 +45,10 @@ const mockContentViews = [
 
 const mockReferralSources = [
   { source: 'Google', count: Math.floor(Math.random() * 2000) + 1000, change: `+${(Math.random() * 5 + 1).toFixed(1)}%` },
+  { source: 'Instagram', count: Math.floor(Math.random() * 1500) + 700, change: `+${(Math.random() * 4 + 1).toFixed(1)}%` },
   { source: 'Twitter / X', count: Math.floor(Math.random() * 1000) + 500, change: `-${(Math.random() * 3 + 0.5).toFixed(1)}%` },
   { source: 'Direct', count: Math.floor(Math.random() * 800) + 400, change: `+${(Math.random() * 2 + 0.5).toFixed(1)}%` },
   { source: 'Facebook', count: Math.floor(Math.random() * 500) + 200, change: `+${(Math.random() * 1 + 0.2).toFixed(1)}%` },
-  { source: 'LinkedIn', count: Math.floor(Math.random() * 300) + 100, change: `-${(Math.random() * 4 + 1).toFixed(1)}%` },
 ];
 
 
@@ -54,7 +57,6 @@ export function AnalyticsClient() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // States for advanced analytics data (populated by mock data for now)
   const [trafficData, setTrafficData] = useState<typeof mockTrafficData>([]);
   const [contentViews, setContentViews] = useState<typeof mockContentViews>([]);
   const [referralSources, setReferralSources] = useState<typeof mockReferralSources>([]);
@@ -64,11 +66,12 @@ export function AnalyticsClient() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const [mediaRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
+        const [mediaRes, testimonialsRes, newsRes, articlesRes, productsRes] = await Promise.all([
           fetchMediaItemsAction(),
           fetchTestimonialsAction(),
           fetchNewsItemsAction(),
           fetchArticlesAction(),
+          fetchProductsAction(),
         ]);
         
         setStats({
@@ -76,22 +79,24 @@ export function AnalyticsClient() {
           testimonials: (testimonialsRes.success && testimonialsRes.data) ? testimonialsRes.data.length : 0,
           news: (newsRes.success && newsRes.data) ? newsRes.data.length : 0,
           articles: (articlesRes.success && articlesRes.data) ? articlesRes.data.length : 0,
+          products: (productsRes.success && productsRes.data) ? productsRes.data.length : 0,
         });
 
-        // Simulate fetching advanced analytics data
         setTrafficData(mockTrafficData);
-        setContentViews(mockContentViews.sort((a, b) => b.views - a.views)); // Sort by views
+        setContentViews(mockContentViews.sort((a, b) => b.views - a.views)); 
         setReferralSources(mockReferralSources.sort((a,b) => b.count - a.count));
 
         if (!mediaRes.success) console.error("Error fetching media for analytics:", mediaRes.error);
         if (!testimonialsRes.success) console.error("Error fetching testimonials for analytics:", testimonialsRes.error);
         if (!newsRes.success) console.error("Error fetching news for analytics:", newsRes.error);
         if (!articlesRes.success) console.error("Error fetching articles for analytics:", articlesRes.error);
+        if (!productsRes.success) console.error("Error fetching products for analytics:", productsRes.error);
+
 
       } catch (error) {
         console.error("Error loading stats from server actions for analytics:", error);
         toast({ title: "Analytics Error", description: "Could not load content statistics for analytics.", variant: "destructive" });
-        setStats({ media: 0, testimonials: 0, news: 0, articles: 0 });
+        setStats({ media: 0, testimonials: 0, news: 0, articles: 0, products: 0 });
       } finally {
         setIsLoading(false);
       }
@@ -101,6 +106,7 @@ export function AnalyticsClient() {
 
   const contentCountChartData = stats ? [
     { name: 'Media', count: stats.media ?? 0, fill: "hsl(var(--chart-1))" },
+    { name: 'Products', count: stats.products ?? 0, fill: "hsl(var(--chart-5))" },
     { name: 'Testimonials', count: stats.testimonials ?? 0, fill: "hsl(var(--chart-2))" },
     { name: 'News', count: stats.news ?? 0, fill: "hsl(var(--chart-3))" },
     { name: 'Articles', count: stats.articles ?? 0, fill: "hsl(var(--chart-4))" },
@@ -109,6 +115,7 @@ export function AnalyticsClient() {
   const contentCountChartConfig = {
     count: { label: "Total Items" },
     media: { label: "Media", color: "hsl(var(--chart-1))" },
+    products: { label: "Products", color: "hsl(var(--chart-5))" },
     testimonials: { label: "Testimonials", color: "hsl(var(--chart-2))" },
     news: { label: "News", color: "hsl(var(--chart-3))" },
     articles: { label: "Articles", color: "hsl(var(--chart-4))" },
@@ -136,10 +143,11 @@ export function AnalyticsClient() {
           <CardTitle>Content Counts Summary</CardTitle>
           <CardDescription>A snapshot of your current content totals.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {isLoading || !stats ? (
             <>
               <StatDisplayCard title="Total Media" icon={LibraryBig} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
+              <StatDisplayCard title="Total Products" icon={Package} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatDisplayCard title="Total Testimonials" icon={MessageSquare} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatDisplayCard title="Total News" icon={Newspaper} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatDisplayCard title="Total Articles" icon={FileText} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
@@ -147,6 +155,7 @@ export function AnalyticsClient() {
           ) : (
             <>
               <StatDisplayCard title="Total Media" icon={LibraryBig} value={stats.media?.toString() ?? "0"} />
+              <StatDisplayCard title="Total Products" icon={Package} value={stats.products?.toString() ?? "0"} />
               <StatDisplayCard title="Total Testimonials" icon={MessageSquare} value={stats.testimonials?.toString() ?? "0"} />
               <StatDisplayCard title="Total News" icon={Newspaper} value={stats.news?.toString() ?? "0"} />
               <StatDisplayCard title="Total Articles" icon={FileText} value={stats.articles?.toString() ?? "0"} />

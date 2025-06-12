@@ -11,7 +11,7 @@ export interface User {
 
 export interface MediaItem {
   id: string;
-  url: string; // dataUri for mock, actual URL in production
+  url: string; 
   name: string;
   altText?: string;
   uploadedAt: Date;
@@ -45,8 +45,20 @@ export interface ArticleItem {
   imageUrl?: string;
 }
 
+export interface ProductItem {
+  id: string;
+  name: string;
+  price: number;
+  description?: string | null;
+  imageUrl: string;
+  category: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export type ServerActionResponse<T = null> = {
   success: boolean;
   data?: T;
   error?: string | { [key: string]: string[] } | null;
 };
+

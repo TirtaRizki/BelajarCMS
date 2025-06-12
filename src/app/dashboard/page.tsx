@@ -4,12 +4,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { LibraryBig, MessageSquare, Settings, Loader2, BarChart3, Newspaper, FileText } from "lucide-react";
-import type { ServerActionResponse, MediaItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
+import { LibraryBig, MessageSquare, Settings, Loader2, BarChart3, Newspaper, FileText, Package } from "lucide-react";
+import type { ServerActionResponse, MediaItem, TestimonialItem, NewsItem, ArticleItem, ProductItem } from '@/types';
 import { fetchMediaItemsAction } from '@/app/actions/media';
 import { fetchTestimonialsAction } from '@/app/actions/testimonials';
 import { fetchNewsItemsAction } from '@/app/actions/news';
 import { fetchArticlesAction } from '@/app/actions/articles';
+import { fetchProductsAction } from '@/app/actions/products';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -18,6 +19,7 @@ export default function DashboardOverviewPage() {
   const [testimonialCount, setTestimonialCount] = useState<number | null>(null);
   const [newsCount, setNewsCount] = useState<number | null>(null);
   const [articleCount, setArticleCount] = useState<number | null>(null);
+  const [productCount, setProductCount] = useState<number | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const { toast } = useToast();
 
@@ -25,11 +27,12 @@ export default function DashboardOverviewPage() {
     const loadStats = async () => {
       setIsLoadingStats(true);
       try {
-        const [mediaRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
+        const [mediaRes, testimonialsRes, newsRes, articlesRes, productsRes] = await Promise.all([
           fetchMediaItemsAction(),
           fetchTestimonialsAction(),
           fetchNewsItemsAction(),
           fetchArticlesAction(),
+          fetchProductsAction(),
         ]);
 
         if (mediaRes.success && mediaRes.data) setMediaCount(mediaRes.data.length);
@@ -43,6 +46,10 @@ export default function DashboardOverviewPage() {
 
         if (articlesRes.success && articlesRes.data) setArticleCount(articlesRes.data.length);
         else { setArticleCount(0); console.error("Error fetching articles:", articlesRes.error); }
+        
+        if (productsRes.success && productsRes.data) setProductCount(productsRes.data.length);
+        else { setProductCount(0); console.error("Error fetching products:", productsRes.error); }
+
 
       } catch (error) {
         console.error("Error loading stats from server actions:", error);
@@ -51,6 +58,7 @@ export default function DashboardOverviewPage() {
         setTestimonialCount(0);
         setNewsCount(0);
         setArticleCount(0);
+        setProductCount(0);
       } finally {
         setIsLoadingStats(false);
       }
@@ -76,6 +84,12 @@ export default function DashboardOverviewPage() {
               icon={LibraryBig}
               title="Media Library"
               description="Upload, view, and manage your images and media."
+            />
+            <DashboardLinkCard
+              href="/dashboard/products"
+              icon={Package}
+              title="Product Management"
+              description="Manage your product catalog and pricing."
             />
             <DashboardLinkCard
               href="/dashboard/testimonials"
@@ -116,10 +130,11 @@ export default function DashboardOverviewPage() {
           <CardTitle>Quick Stats</CardTitle>
           <CardDescription>A brief overview of your content.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {isLoadingStats ? (
             <>
               <StatCard title="Total Media" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
+              <StatCard title="Total Products" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatCard title="Total Testimonials" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatCard title="Total News" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatCard title="Total Articles" valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
@@ -127,6 +142,7 @@ export default function DashboardOverviewPage() {
           ) : (
             <>
               <StatCard title="Total Media" value={mediaCount !== null ? mediaCount.toString() : "N/A"} />
+              <StatCard title="Total Products" value={productCount !== null ? productCount.toString() : "N/A"} />
               <StatCard title="Total Testimonials" value={testimonialCount !== null ? testimonialCount.toString() : "N/A"} />
               <StatCard title="Total News" value={newsCount !== null ? newsCount.toString() : "N/A"} />
               <StatCard title="Total Articles" value={articleCount !== null ? articleCount.toString() : "N/A"} />
