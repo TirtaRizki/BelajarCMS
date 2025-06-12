@@ -3,13 +3,12 @@
 
 import type { ArticleItem, ServerActionResponse } from '@/types';
 
-// let mockArticleStore: ArticleItem[] = [];
+let mockArticleStore: ArticleItem[] = [];
 
 export async function fetchArticlesAction(): Promise<ServerActionResponse<ArticleItem[]>> {
   console.log('Server Action: fetchArticlesAction');
-  await new Promise(resolve => setTimeout(resolve, 50)); // Simulate delay
-  // return { success: true, data: mockArticleStore };
-  return { success: true, data: [] };
+  await new Promise(resolve => setTimeout(resolve, 50)); 
+  return { success: true, data: [...mockArticleStore].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()) };
 }
 
 export async function addArticleAction(
@@ -24,7 +23,7 @@ export async function addArticleAction(
     publishedAt: newArticle.publishedAt || new Date(),
     tags: newArticle.tags || [],
   };
-  // mockArticleStore.unshift(articleToSave);
+  mockArticleStore.unshift(articleToSave);
   console.log('Server Action: article added successfully for', newArticle.title);
   return { success: true, data: articleToSave };
 }
@@ -36,38 +35,31 @@ export async function updateArticleAction(
   console.log('Server Action: updateArticleAction for ID', articleId);
   await new Promise(resolve => setTimeout(resolve, 50));
 
-  // const articleIndex = mockArticleStore.findIndex(a => a.id === articleId);
-  // if (articleIndex === -1) {
-  //   return { success: false, error: "Article not found." };
-  // }
-  // mockArticleStore[articleIndex] = { 
-  //   ...mockArticleStore[articleIndex], 
-  //   ...updates, 
-  //   publishedAt: new Date(mockArticleStore[articleIndex].publishedAt) 
-  // };
-  // return { success: true, data: mockArticleStore[articleIndex] };
-   const mockUpdatedArticle: ArticleItem = {
-    id: articleId,
-    title: updates.title || `Article ${articleId.substring(0,4)}`,
-    content: updates.content || `Content for article ${articleId.substring(0,4)}`,
-    author: updates.author || 'Default Author',
-    category: updates.category || 'Default Category',
-    tags: updates.tags || [],
-    imageUrl: updates.imageUrl,
-    publishedAt: new Date(), // Or fetch existing publishedAt
+  const articleIndex = mockArticleStore.findIndex(a => a.id === articleId);
+  if (articleIndex === -1) {
+    return { success: false, error: "Article not found." };
+  }
+  
+  mockArticleStore[articleIndex] = { 
+    ...mockArticleStore[articleIndex], 
+    ...updates, 
+    // publishedAt: new Date(mockArticleStore[articleIndex].publishedAt) // Keep original publish date
   };
-  return { success: true, data: mockUpdatedArticle };
+  
+  console.log('Server Action: article update successful for', articleId);
+  return { success: true, data: mockArticleStore[articleIndex] };
 }
 
 export async function deleteArticleAction(articleId: string): Promise<ServerActionResponse> {
   console.log('Server Action: deleteArticleAction for ID', articleId);
   await new Promise(resolve => setTimeout(resolve, 50));
 
-  // const initialLength = mockArticleStore.length;
-  // mockArticleStore = mockArticleStore.filter(a => a.id !== articleId);
-  // if (mockArticleStore.length === initialLength) {
-  //    return { success: false, error: "Article not found." };
-  // }
+  const initialLength = mockArticleStore.length;
+  mockArticleStore = mockArticleStore.filter(a => a.id !== articleId);
+  
+  if (mockArticleStore.length === initialLength) {
+     return { success: false, error: "Article not found for deletion." };
+  }
   console.log('Server Action: article deletion successful for', articleId);
   return { success: true };
 }
