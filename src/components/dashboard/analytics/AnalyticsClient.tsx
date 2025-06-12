@@ -3,19 +3,19 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Image, MessageSquare, Loader2, Newspaper, FileText, Users, Eye, Link2 } from "lucide-react";
-import type { ServerActionResponse, ImageItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
+import { BarChart3, LibraryBig, MessageSquare, Loader2, Newspaper, FileText, Users, Eye, Link2 } from "lucide-react";
+import type { ServerActionResponse, MediaItem, TestimonialItem, NewsItem, ArticleItem } from '@/types';
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RechartsLineChart } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { fetchImagesAction } from '@/app/actions/images';
+import { fetchMediaItemsAction } from '@/app/actions/media';
 import { fetchTestimonialsAction } from '@/app/actions/testimonials';
 import { fetchNewsItemsAction } from '@/app/actions/news';
 import { fetchArticlesAction } from '@/app/actions/articles';
 import { useToast } from '@/hooks/use-toast';
 
 interface StatData {
-  images: number | null;
+  media: number | null;
   testimonials: number | null;
   news: number | null;
   articles: number | null;
@@ -35,7 +35,7 @@ const mockTrafficData = [
 const mockContentViews = [
   { contentName: 'Introduction to Next.js', views: Math.floor(Math.random() * 1000) + 500, type: 'Article' },
   { contentName: 'Summer Collection Launch', views: Math.floor(Math.random() * 800) + 400, type: 'News' },
-  { contentName: 'Product Showcase Video', views: Math.floor(Math.random() * 1200) + 600, type: 'Image' },
+  { contentName: 'Product Showcase Video', views: Math.floor(Math.random() * 1200) + 600, type: 'Media' },
   { contentName: 'Advanced Tailwind Techniques', views: Math.floor(Math.random() * 700) + 300, type: 'Article' },
   { contentName: 'Community Meetup Highlights', views: Math.floor(Math.random() * 600) + 250, type: 'News' },
 ];
@@ -64,15 +64,15 @@ export function AnalyticsClient() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const [imagesRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
-          fetchImagesAction(),
+        const [mediaRes, testimonialsRes, newsRes, articlesRes] = await Promise.all([
+          fetchMediaItemsAction(),
           fetchTestimonialsAction(),
           fetchNewsItemsAction(),
           fetchArticlesAction(),
         ]);
         
         setStats({
-          images: (imagesRes.success && imagesRes.data) ? imagesRes.data.length : 0,
+          media: (mediaRes.success && mediaRes.data) ? mediaRes.data.length : 0,
           testimonials: (testimonialsRes.success && testimonialsRes.data) ? testimonialsRes.data.length : 0,
           news: (newsRes.success && newsRes.data) ? newsRes.data.length : 0,
           articles: (articlesRes.success && articlesRes.data) ? articlesRes.data.length : 0,
@@ -83,7 +83,7 @@ export function AnalyticsClient() {
         setContentViews(mockContentViews.sort((a, b) => b.views - a.views)); // Sort by views
         setReferralSources(mockReferralSources.sort((a,b) => b.count - a.count));
 
-        if (!imagesRes.success) console.error("Error fetching images for analytics:", imagesRes.error);
+        if (!mediaRes.success) console.error("Error fetching media for analytics:", mediaRes.error);
         if (!testimonialsRes.success) console.error("Error fetching testimonials for analytics:", testimonialsRes.error);
         if (!newsRes.success) console.error("Error fetching news for analytics:", newsRes.error);
         if (!articlesRes.success) console.error("Error fetching articles for analytics:", articlesRes.error);
@@ -91,7 +91,7 @@ export function AnalyticsClient() {
       } catch (error) {
         console.error("Error loading stats from server actions for analytics:", error);
         toast({ title: "Analytics Error", description: "Could not load content statistics for analytics.", variant: "destructive" });
-        setStats({ images: 0, testimonials: 0, news: 0, articles: 0 });
+        setStats({ media: 0, testimonials: 0, news: 0, articles: 0 });
       } finally {
         setIsLoading(false);
       }
@@ -100,7 +100,7 @@ export function AnalyticsClient() {
   }, [toast]);
 
   const contentCountChartData = stats ? [
-    { name: 'Images', count: stats.images ?? 0, fill: "hsl(var(--chart-1))" },
+    { name: 'Media', count: stats.media ?? 0, fill: "hsl(var(--chart-1))" },
     { name: 'Testimonials', count: stats.testimonials ?? 0, fill: "hsl(var(--chart-2))" },
     { name: 'News', count: stats.news ?? 0, fill: "hsl(var(--chart-3))" },
     { name: 'Articles', count: stats.articles ?? 0, fill: "hsl(var(--chart-4))" },
@@ -108,14 +108,14 @@ export function AnalyticsClient() {
 
   const contentCountChartConfig = {
     count: { label: "Total Items" },
-    images: { label: "Images", color: "hsl(var(--chart-1))" },
+    media: { label: "Media", color: "hsl(var(--chart-1))" },
     testimonials: { label: "Testimonials", color: "hsl(var(--chart-2))" },
     news: { label: "News", color: "hsl(var(--chart-3))" },
     articles: { label: "Articles", color: "hsl(var(--chart-4))" },
   } satisfies Parameters<typeof ChartContainer>[0]["config"];
 
   const trafficChartConfig = {
-    visits: { label: "Visits", color: "hsl(var(--chart-1))" },
+    visits: { label: "Visits", color: "hsl(var(--primary))" },
   } satisfies Parameters<typeof ChartContainer>[0]["config"];
 
 
@@ -139,14 +139,14 @@ export function AnalyticsClient() {
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {isLoading || !stats ? (
             <>
-              <StatDisplayCard title="Total Images" icon={Image} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
+              <StatDisplayCard title="Total Media" icon={LibraryBig} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatDisplayCard title="Total Testimonials" icon={MessageSquare} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatDisplayCard title="Total News" icon={Newspaper} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
               <StatDisplayCard title="Total Articles" icon={FileText} valueContent={<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />} />
             </>
           ) : (
             <>
-              <StatDisplayCard title="Total Images" icon={Image} value={stats.images?.toString() ?? "0"} />
+              <StatDisplayCard title="Total Media" icon={LibraryBig} value={stats.media?.toString() ?? "0"} />
               <StatDisplayCard title="Total Testimonials" icon={MessageSquare} value={stats.testimonials?.toString() ?? "0"} />
               <StatDisplayCard title="Total News" icon={Newspaper} value={stats.news?.toString() ?? "0"} />
               <StatDisplayCard title="Total Articles" icon={FileText} value={stats.articles?.toString() ?? "0"} />
@@ -190,7 +190,6 @@ export function AnalyticsClient() {
         </CardContent>
       </Card>
       
-      {/* Advanced Analytics Sections */}
       <Card className="mt-8">
         <CardHeader>
             <div className="flex items-center space-x-3 mb-1">
@@ -339,6 +338,3 @@ function StatDisplayCard({ title, value, icon: Icon, valueContent }: StatDisplay
     </Card>
   )
 }
-
-
-    
