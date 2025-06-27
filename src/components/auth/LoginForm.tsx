@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn, Loader2, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -73,6 +74,11 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
+              <Link href="/forgot-password" passHref>
+                <span className="text-xs text-primary hover:underline cursor-pointer">
+                  Forgot password?
+                </span>
+              </Link>
             </div>
             <Input
               id="password"
@@ -95,6 +101,14 @@ export function LoginForm() {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center text-sm space-y-2 pt-4">
+        <p>
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" passHref>
+            <span className="font-semibold text-primary hover:underline cursor-pointer">
+              Sign up
+            </span>
+          </Link>
+        </p>
       </CardFooter>
     </Card>
   );
