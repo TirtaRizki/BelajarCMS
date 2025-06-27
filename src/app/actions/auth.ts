@@ -7,15 +7,16 @@ import { getAuthToken } from '@/lib/api-helpers';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
-// This function is adjusted to use the /jwt endpoint as per the new documentation.
+// This function is adjusted to use the /auth/login endpoint, which is standard for credentials-based login.
+// The /jwt endpoint in the documentation seems to be for a different purpose (e.g., service token)
+// as its example payload doesn't include user credentials.
 export async function loginAction(email: string, pass: string): Promise<ServerActionResponse<User>> {
   console.log('Server Action: loginAction attempt for', email);
   try {
-    const response = await fetch(`${API_BASE_URL}/jwt`, {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // Assuming the backend expects email and password despite the doc's example
-      body: JSON.stringify({ email: email, password: pass, code: "BBC" }),
+      body: JSON.stringify({ email: email, password: pass }),
     });
 
     const result = await response.json();
@@ -31,7 +32,7 @@ export async function loginAction(email: string, pass: string): Promise<ServerAc
       path: '/',
     });
     
-    // The new documentation does not specify a profile fetching endpoint.
+    // The documentation does not specify a profile fetching endpoint.
     // We will assume one exists at /auth/profile for now to keep the UI functional.
     const profileResponse = await fetchUserProfile(result.token);
     if (profileResponse.success && profileResponse.data) {
