@@ -30,7 +30,7 @@ interface NewsCardProps {
 export function NewsCard({ newsItem, onEdit, onDelete, isProcessing }: NewsCardProps) {
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    onDelete(newsItem.id);
+    onDelete(String(newsItem.id));
   };
 
   return (

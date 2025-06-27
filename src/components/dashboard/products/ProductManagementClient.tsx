@@ -64,7 +64,7 @@ export function ProductManagementClient() {
     if (response.success && response.data) {
       setProducts((prev) =>
         prev.map((p) =>
-          p.id === productId ? { ...response.data!, createdAt: new Date(p.createdAt), updatedAt: new Date(response.data!.updatedAt) } : p
+          p.id === response.data!.id ? { ...response.data!, createdAt: new Date(p.createdAt), updatedAt: new Date(response.data!.updatedAt) } : p
         )
       );
       toast({
@@ -82,7 +82,7 @@ export function ProductManagementClient() {
     setIsProcessing(true);
     const response = await deleteProductAction(productId);
     if (response.success) {
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      setProducts((prev) => prev.filter((p) => String(p.id) !== productId));
       toast({ title: "Product Deleted", description: "The product has been successfully deleted." });
     } else {
       toast({ title: "Delete Error", description: response.error || "Could not delete product.", variant: "destructive" });

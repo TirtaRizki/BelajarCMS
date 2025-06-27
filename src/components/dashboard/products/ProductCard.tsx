@@ -31,7 +31,7 @@ export function ProductCard({ product, onEdit, onDelete, isProcessing }: Product
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); 
-    onDelete(product.id);
+    onDelete(String(product.id));
   };
 
   const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
@@ -41,7 +41,7 @@ export function ProductCard({ product, onEdit, onDelete, isProcessing }: Product
       <CardHeader className="p-0">
         <div className="relative w-full aspect-video bg-muted">
           <NextImage 
-            src={product.imageUrl || "https://placehold.co/600x400.png?text=No+Image"} 
+            src={product.image || "https://placehold.co/600x400.png?text=No+Image"} 
             alt={product.name}
             layout="fill" 
             objectFit="cover"

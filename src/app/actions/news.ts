@@ -2,29 +2,54 @@
 'use server';
 
 import type { NewsItem, ServerActionResponse } from '@/types';
+import { getAuthToken } from '@/lib/api-helpers';
 
-let mockNewsStore: NewsItem[] = [];
+const API_BASE_URL = process.env.API_BASE_URL;
 
 export async function fetchNewsItemsAction(): Promise<ServerActionResponse<NewsItem[]>> {
-  console.log('Server Action: fetchNewsItemsAction');
-  await new Promise(resolve => setTimeout(resolve, 50)); 
-  return { success: true, data: [...mockNewsStore].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()) };
+  console.log('Server Action: fetchNewsItemsAction (API)');
+  try {
+    const response = await fetch(`${API_BASE_URL}/news`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      next: { tags: ['news'] },
+    });
+    const result = await response.json();
+    if (!result.success) {
+      return { success: false, error: result.message || "Failed to fetch news items." };
+    }
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('Fetch News Error:', error);
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
 }
 
 export async function addNewsItemAction(
-  newNewsItem: Omit<NewsItem, 'id' | 'publishedAt'> & { publishedAt?: Date }
+  newNewsItem: Omit<NewsItem, 'id' | 'publishedAt'>
 ): Promise<ServerActionResponse<NewsItem>> {
   console.log('Server Action: addNewsItemAction for title', newNewsItem.title);
-  await new Promise(resolve => setTimeout(resolve, 50));
+  const token = getAuthToken();
+  if (!token) return { success: false, error: "Not authenticated." };
 
-  const newsItemToSave: NewsItem = {
-    ...newNewsItem,
-    id: crypto.randomUUID(),
-    publishedAt: newNewsItem.publishedAt || new Date(),
-  };
-  mockNewsStore.unshift(newsItemToSave);
-  console.log('Server Action: news item added successfully for', newNewsItem.title);
-  return { success: true, data: newsItemToSave };
+  try {
+    const response = await fetch(`${API_BASE_URL}/news`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(newNewsItem),
+    });
+    const result = await response.json();
+    if (!result.success) {
+      return { success: false, error: result.message || "Failed to add news item." };
+    }
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('Add News Error:', error);
+    return { success: false, error: 'An unexpected error occurred.' };
+  }
 }
 
 export async function updateNewsItemAction(
@@ -32,33 +57,58 @@ export async function updateNewsItemAction(
   updates: Partial<Omit<NewsItem, 'id' | 'publishedAt'>>
 ): Promise<ServerActionResponse<NewsItem>> {
   console.log('Server Action: updateNewsItemAction for ID', newsItemId);
-  await new Promise(resolve => setTimeout(resolve, 50));
+  const token = getAuthToken();
+  if (!token) return { success: false, error: "Not authenticated." };
 
-  const newsItemIndex = mockNewsStore.findIndex(n => n.id === newsItemId);
-  if (newsItemIndex === -1) {
-    return { success: false, error: "News item not found." };
+  try {
+    const response = await fetch(`${API_BASE_URL}/news/${newsItemId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updates),
+    });
+    const result = await response.json();
+    if (!result.success) {
+      return { success: false, error: result.message || "Failed to update news item." };
+    }
+    return { success: true, data: result.data };
+  } catch (error) {
+    console.error('Update News Error:', error);
+    return { success: false, error: 'An unexpected error occurred.' };
   }
-  
-  mockNewsStore[newsItemIndex] = { 
-    ...mockNewsStore[newsItemIndex], 
-    ...updates, 
-    // publishedAt: new Date(mockNewsStore[newsItemIndex].publishedAt) // Keep original publish date
-  };
-  
-  console.log('Server Action: news item update successful for', newsItemId);
-  return { success: true, data: mockNewsStore[newsItemIndex] };
 }
 
 export async function deleteNewsItemAction(newsItemId: string): Promise<ServerActionResponse> {
   console.log('Server Action: deleteNewsItemAction for ID', newsItemId);
-  await new Promise(resolve => setTimeout(resolve, 50));
+  const token = getAuthToken();
+  if (!token) return { success: false, error: "Not authenticated." };
 
-  const initialLength = mockNewsStore.length;
-  mockNewsStore = mockNewsStore.filter(n => n.id !== newsItemId);
-  
-  if (mockNewsStore.length === initialLength) {
-     return { success: false, error: "News item not found for deletion." };
+  try {
+    const response = await fetch(`${API_BASE_URL}/news/${newsItemId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    
+    if (response.status === 204 || response.status === 200) {
+        const text = await response.text();
+        try {
+            const result = text ? JSON.parse(text) : {};
+             if (result.success === false) {
+                 return { success: false, error: result.message || "Deletion failed."};
+             }
+        } catch(e) {}
+        return { success: true };
+    }
+
+    const result = await response.json();
+    if (!result.success) {
+      return { success: false, error: result.message || "Failed to delete news item." };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error('Delete News Error:', error);
+    return { success: false, error: 'An unexpected error occurred.' };
   }
-  console.log('Server Action: news item deletion successful for', newsItemId);
-  return { success: true };
 }

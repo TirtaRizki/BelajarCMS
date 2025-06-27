@@ -52,7 +52,7 @@ export function EditTestimonialModal({ isOpen, onOpenChange, testimonial, onSave
       return;
     }
     
-    onSave(testimonial.id, author, quote);
+    onSave(String(testimonial.id), author, quote);
     // Parent handles toast and closing modal
   };
 

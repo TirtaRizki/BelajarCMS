@@ -107,7 +107,7 @@ export function EditNewsModal({ isOpen, onOpenChange, newsItem, onSave, isProces
       imageUrl: newImagePreview || currentImageUrl, // Prioritize new image
     };
     
-    onSave(newsItem.id, updates);
+    onSave(String(newsItem.id), updates);
   };
 
   if (!newsItem) return null;

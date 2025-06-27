@@ -54,7 +54,7 @@ export function NewsManagementClient() {
     setIsProcessing(true);
     const response = await updateNewsItemAction(newsItemId, updates);
     if (response.success && response.data) {
-      setNewsItems(prev => prev.map(item => item.id === newsItemId ? { ...response.data!, publishedAt: new Date(response.data!.publishedAt) } : item));
+      setNewsItems(prev => prev.map(item => item.id === response.data!.id ? { ...response.data!, publishedAt: new Date(response.data!.publishedAt) } : item));
       toast({ title: "News Item Updated", description: `"${response.data.title}" has been updated.` });
     } else {
       toast({ title: "Update Error", description: response.error || "Could not update news item.", variant: "destructive" });
@@ -67,7 +67,7 @@ export function NewsManagementClient() {
     setIsProcessing(true);
     const response = await deleteNewsItemAction(newsItemId);
     if (response.success) {
-      setNewsItems(prev => prev.filter(item => item.id !== newsItemId));
+      setNewsItems(prev => prev.filter(item => String(item.id) !== newsItemId));
       toast({ title: "News Item Deleted", description: "The news item has been successfully deleted." });
     } else {
       toast({ title: "Delete Error", description: response.error || "Could not delete news item.", variant: "destructive" });

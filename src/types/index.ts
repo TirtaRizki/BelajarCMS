@@ -1,12 +1,12 @@
 
 export interface User {
-  id: string; 
+  id: string | number; 
   username: string;
   email: string;
   displayName: string;
   role: 'admin' | 'author' | 'operator';
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export interface MediaItem {
@@ -14,46 +14,46 @@ export interface MediaItem {
   url: string; 
   name: string;
   altText?: string;
-  uploadedAt: Date;
+  uploadedAt: Date | string;
 }
 
 export interface TestimonialItem {
-  id: string;
+  id: string | number;
   author: string;
   quote: string;
-  createdAt: Date;
+  createdAt: Date | string;
 }
 
 export interface NewsItem {
-  id: string;
+  id: string | number;
   title: string;
   content: string;
   author: string;
   category: string;
-  publishedAt: Date;
+  publishedAt: Date | string;
   imageUrl?: string;
 }
 
 export interface ArticleItem {
-  id: string;
+  id: string | number;
   title: string;
   content: string; 
   author: string;
   category: string;
   tags?: string[];
-  publishedAt: Date;
+  publishedAt: Date | string;
   imageUrl?: string;
 }
 
 export interface ProductItem {
-  id: string;
+  id: string | number;
   name: string;
   price: number;
   description?: string | null;
-  imageUrl: string;
+  image: string; // Changed from imageUrl to match API
   category: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 export type ServerActionResponse<T = null> = {
@@ -61,4 +61,3 @@ export type ServerActionResponse<T = null> = {
   data?: T;
   error?: string | { [key: string]: string[] } | null;
 };
-

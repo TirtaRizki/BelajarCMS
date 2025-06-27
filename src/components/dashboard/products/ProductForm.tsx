@@ -22,12 +22,12 @@ export function ProductForm({ onProductAdded, isProcessing }: ProductFormProps) 
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [image, setImage] = useState('');
   const { toast } = useToast();
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!name.trim() || !price.trim() || !category.trim() || !imageUrl.trim()) {
+    if (!name.trim() || !price.trim() || !category.trim() || !image.trim()) {
       toast({
         title: "Missing Information",
         description: "Please fill in name, price, category, and image URL.",
@@ -45,7 +45,7 @@ export function ProductForm({ onProductAdded, isProcessing }: ProductFormProps) 
       return;
     }
     try {
-      new URL(imageUrl); // Validate URL
+      new URL(image); // Validate URL
     } catch (_) {
       toast({
         title: "Invalid Image URL",
@@ -60,7 +60,7 @@ export function ProductForm({ onProductAdded, isProcessing }: ProductFormProps) 
       price: parsedPrice,
       description: description.trim() || null,
       category,
-      imageUrl,
+      image,
     };
 
     onProductAdded(newProductDraft);
@@ -68,7 +68,7 @@ export function ProductForm({ onProductAdded, isProcessing }: ProductFormProps) 
     setPrice('');
     setDescription('');
     setCategory('');
-    setImageUrl('');
+    setImage('');
   };
 
   return (
@@ -106,10 +106,10 @@ export function ProductForm({ onProductAdded, isProcessing }: ProductFormProps) 
             <Label htmlFor="product-image-url" className="flex items-center mb-1">
                 <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Image URL
             </Label>
-            <Input id="product-image-url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.jpg (Copy from Media Library)" disabled={isProcessing} required type="url" />
-             {imageUrl && (
+            <Input id="product-image-url" value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://example.com/image.jpg (Copy from Media Library)" disabled={isProcessing} required type="url" />
+             {image && (
               <div className="mt-3 relative aspect-video w-full max-w-xs mx-auto rounded-md overflow-hidden border bg-muted">
-                <NextImage src={imageUrl} alt="Product image preview" layout="fill" objectFit="contain" data-ai-hint="product photo" onError={() => console.warn("Error loading image preview for URL:", imageUrl)} />
+                <NextImage src={image} alt="Product image preview" layout="fill" objectFit="contain" data-ai-hint="product photo" onError={() => console.warn("Error loading image preview for URL:", image)} />
               </div>
             )}
           </div>

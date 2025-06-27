@@ -56,7 +56,7 @@ export function TestimonialManagementClient() {
     if (response.success && response.data) {
       setTestimonials((prev) =>
         prev.map((item) =>
-          item.id === testimonialId ? { ...response.data!, createdAt: new Date(response.data!.createdAt) } : item
+          item.id === response.data!.id ? { ...response.data!, createdAt: new Date(response.data!.createdAt) } : item
         )
       );
       toast({ title: "Testimonial Updated", description: `Testimonial by ${newAuthor} has been updated.` });
@@ -71,7 +71,7 @@ export function TestimonialManagementClient() {
     setIsProcessing(true);
     const response = await deleteTestimonialAction(testimonialId);
     if (response.success) {
-      setTestimonials((prev) => prev.filter((item) => item.id !== testimonialId));
+      setTestimonials((prev) => prev.filter((item) => String(item.id) !== testimonialId));
       toast({ title: "Testimonial Deleted", description: "The testimonial has been successfully deleted." });
     } else {
       toast({ title: "Delete Error", description: response.error || "Could not delete testimonial.", variant: "destructive" });

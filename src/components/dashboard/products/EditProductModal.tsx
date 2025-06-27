@@ -33,7 +33,7 @@ export function EditProductModal({ isOpen, onOpenChange, product, onSave, isProc
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [image, setImage] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function EditProductModal({ isOpen, onOpenChange, product, onSave, isProc
       setPrice(String(product.price));
       setDescription(product.description || '');
       setCategory(product.category);
-      setImageUrl(product.imageUrl);
+      setImage(product.image);
     }
   }, [product]);
 
@@ -50,7 +50,7 @@ export function EditProductModal({ isOpen, onOpenChange, product, onSave, isProc
     event.preventDefault();
     if (!product || isProcessing) return;
 
-    if (!name.trim() || !price.trim() || !category.trim() || !imageUrl.trim()) {
+    if (!name.trim() || !price.trim() || !category.trim() || !image.trim()) {
       toast({
         title: "Missing Information",
         description: "Please fill in name, price, category, and image URL.",
@@ -68,7 +68,7 @@ export function EditProductModal({ isOpen, onOpenChange, product, onSave, isProc
       return;
     }
      try {
-      new URL(imageUrl); // Validate URL
+      new URL(image); // Validate URL
     } catch (_) {
       toast({
         title: "Invalid Image URL",
@@ -83,10 +83,10 @@ export function EditProductModal({ isOpen, onOpenChange, product, onSave, isProc
       price: parsedPrice,
       description: description.trim() || null,
       category,
-      imageUrl,
+      image,
     };
     
-    onSave(product.id, updates);
+    onSave(String(product.id), updates);
   };
 
   if (!product) return null;
@@ -125,10 +125,10 @@ export function EditProductModal({ isOpen, onOpenChange, product, onSave, isProc
             <Label htmlFor="edit-product-image-url" className="flex items-center mb-1">
                 <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Image URL
             </Label>
-            <Input id="edit-product-image-url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} disabled={isProcessing} required type="url" />
-             {imageUrl && (
+            <Input id="edit-product-image-url" value={image} onChange={(e) => setImage(e.target.value)} disabled={isProcessing} required type="url" />
+             {image && (
               <div className="mt-2 relative aspect-video w-full max-w-xs mx-auto rounded-md overflow-hidden border bg-muted">
-                <NextImage src={imageUrl} alt="Product image preview" layout="fill" objectFit="contain" data-ai-hint="product photo" onError={() => console.warn("Error loading image preview for URL:", imageUrl)} />
+                <NextImage src={image} alt="Product image preview" layout="fill" objectFit="contain" data-ai-hint="product photo" onError={() => console.warn("Error loading image preview for URL:", image)} />
               </div>
             )}
           </div>

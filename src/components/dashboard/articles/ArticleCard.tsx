@@ -31,7 +31,7 @@ interface ArticleCardProps {
 export function ArticleCard({ article, onEdit, onDelete, isProcessing }: ArticleCardProps) {
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    onDelete(article.id);
+    onDelete(String(article.id));
   };
 
   return (

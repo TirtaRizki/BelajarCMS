@@ -54,7 +54,7 @@ export function ArticleManagementClient() {
     setIsProcessing(true);
     const response = await updateArticleAction(articleId, updates);
     if (response.success && response.data) {
-      setArticles(prev => prev.map(item => item.id === articleId ? { ...response.data!, publishedAt: new Date(response.data!.publishedAt) } : item));
+      setArticles(prev => prev.map(item => item.id === response.data!.id ? { ...response.data!, publishedAt: new Date(response.data!.publishedAt) } : item));
       toast({ title: "Article Updated", description: `"${response.data.title}" has been updated.` });
     } else {
       toast({ title: "Update Error", description: response.error || "Could not update article.", variant: "destructive" });
@@ -67,7 +67,7 @@ export function ArticleManagementClient() {
     setIsProcessing(true);
     const response = await deleteArticleAction(articleId);
     if (response.success) {
-      setArticles(prev => prev.filter(item => item.id !== articleId));
+      setArticles(prev => prev.filter(item => String(item.id) !== articleId));
       toast({ title: "Article Deleted", description: "The article has been successfully deleted." });
     } else {
       toast({ title: "Delete Error", description: response.error || "Could not delete article.", variant: "destructive" });

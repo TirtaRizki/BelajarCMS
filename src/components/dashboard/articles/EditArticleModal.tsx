@@ -112,7 +112,7 @@ export function EditArticleModal({ isOpen, onOpenChange, article, onSave, isProc
       imageUrl: newImagePreview || currentImageUrl,
     };
     
-    onSave(article.id, updates);
+    onSave(String(article.id), updates);
   };
 
   if (!article) return null;
