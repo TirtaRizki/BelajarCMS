@@ -10,7 +10,7 @@ import { loginAction, fetchUserProfile, updateUserProfileAction, logoutAction } 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
-  login: (username: string, pass: string) => Promise<boolean>;
+  login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   updateUserContext: (updatedData: Partial<Pick<User, 'displayName' | 'email' | 'role'>>) => Promise<User | null>;
   isLoading: boolean;
@@ -19,11 +19,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper to extract a string message from the error
 const getErrorMessage = (error: ServerActionResponse['error'], defaultMessage: string): string => {
     if (!error) return defaultMessage;
     if (typeof error === 'string') return error;
-    // If it's an object (like Zod errors), attempt to get the first message from the first field
     const firstErrorKey = Object.keys(error)[0];
     if (firstErrorKey && Array.isArray(error[firstErrorKey]) && error[firstErrorKey].length > 0) {
         return error[firstErrorKey][0];
@@ -47,15 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(response.data);
         } else {
           setUser(null);
-          if (!response.success) {
-            // console.error("AuthContext: Error fetching user profile on mount:", response.error);
-            // Optionally set an authError here if it's critical for UI, though typically silent failure is okay
-          }
         }
       } catch (e) {
-        // console.error("AuthContext: Exception during checkSession:", e);
         setUser(null);
-        // setAuthError("Failed to initialize session due to an unexpected error.");
       } finally {
         setIsLoading(false);
       }
@@ -63,11 +55,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkSession();
   }, []);
 
-  const login = useCallback(async (username: string, pass: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, pass: string): Promise<boolean> => {
     setIsLoading(true);
     setAuthError(null);
     try {
-      const response = await loginAction(username, pass);
+      const response = await loginAction(email, pass);
       if (response.success && response.data) {
         setUser(response.data);
         return true;
@@ -77,7 +69,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
     } catch (e) {
-      // console.error("AuthContext: Exception during login:", e);
       setAuthError("An unexpected error occurred during login.");
       setUser(null);
       return false;
@@ -92,7 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutAction();
     } catch (e) {
-      // console.error("AuthContext: Exception during logout:", e);
       // Error during logout is usually not critical to user, but log it.
     } finally {
       setUser(null);
@@ -118,7 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null; 
       }
     } catch (e) {
-      // console.error("AuthContext: Exception during profile update:", e);
       setAuthError("An unexpected error occurred while updating profile.");
       return null;
     } finally {

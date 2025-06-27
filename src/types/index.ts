@@ -4,7 +4,7 @@ export interface User {
   username: string;
   email: string;
   displayName: string;
-  role: 'admin' | 'author' | 'operator';
+  role: 'ADMIN' | 'AUTHOR' | 'OPERATOR'; // Changed to uppercase to match API
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -50,7 +50,7 @@ export interface ProductItem {
   name: string;
   price: number;
   description?: string | null;
-  image: string; // Changed from imageUrl to match API
+  image: string;
   category: string;
   createdAt: Date | string;
   updatedAt: Date | string;

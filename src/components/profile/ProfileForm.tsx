@@ -17,27 +17,31 @@ import { Save, Loader2, UserCircle, Mail, Shield, KeyRound } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext';
 import type { User } from '@/types';
 
-const availableRoles: User['role'][] = ['admin', 'author', 'operator'];
+// Roles are now uppercase to match API
+const availableRoles: User['role'][] = ['ADMIN', 'AUTHOR', 'OPERATOR'];
 
 export function ProfileForm() {
   const { user, updateUserContext, isLoading: authLoading } = useAuth();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
-  const [selectedRole, setSelectedRole] = useState<User['role']>('operator');
+  const [selectedRole, setSelectedRole] = useState<User['role']>('OPERATOR');
+  // This password field is just for local verification logic, not sent to API unless specified
   const [currentPassword, setCurrentPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const [initialDisplayName, setInitialDisplayName] = useState('');
   const [initialEmail, setInitialEmail] = useState('');
-  const [initialRole, setInitialRole] = useState<User['role']>('operator');
+  const [initialRole, setInitialRole] = useState<User['role']>('OPERATOR');
 
   useEffect(() => {
     if (user) {
       setDisplayName(user.displayName || '');
       setEmail(user.email || '');
-      setSelectedRole(user.role || 'operator');
+      setSelectedRole(user.role || 'OPERATOR');
+      setInitialDisplayName(user.displayName || '');
       setInitialEmail(user.email || '');
-      setInitialRole(user.role || 'operator');
+      setInitialRole(user.role || 'OPERATOR');
     }
   }, [user]);
 
@@ -45,39 +49,38 @@ export function ProfileForm() {
     event.preventDefault();
     if (!user) return;
 
-    const emailChanged = email !== initialEmail;
-    const roleChanged = selectedRole !== initialRole;
-    const displayNameChanged = displayName !== user.displayName;
+    const updates: Partial<Pick<User, 'displayName' | 'email' | 'role'>> = {};
+    if (displayName !== initialDisplayName) updates.displayName = displayName;
+    if (email !== initialEmail) updates.email = email;
+    if (selectedRole !== initialRole) updates.role = selectedRole;
 
-    if ((emailChanged || roleChanged || displayNameChanged) && !currentPassword.trim()) {
-      toast({
-        title: "Password Required",
-        description: "Please enter your current password to save changes to email, role, or display name.",
-        variant: "destructive",
-      });
+    if (Object.keys(updates).length === 0) {
+      toast({ title: "No Changes", description: "You haven't made any changes to your profile." });
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate API call to update profile
-    // In a real app, you would send currentPassword for verification
-    // and then send displayName, email, selectedRole to the server.
-
-    await new Promise(resolve => setTimeout(resolve, 700)); // Simulate network delay
-
-    updateUserContext({ displayName, email, role: selectedRole });
+    const updatedUser = await updateUserContext(updates);
     
-    // Update initial values after successful save
-    setInitialEmail(email);
-    setInitialRole(selectedRole);
-    setCurrentPassword(''); // Clear password field
-
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been updated successfully.",
-    });
     setIsLoading(false);
+
+    if (updatedUser) {
+        toast({
+          title: "Profile Updated",
+          description: "Your profile information has been updated successfully.",
+        });
+        // Reset initial values to the new ones
+        setInitialDisplayName(updatedUser.displayName);
+        setInitialEmail(updatedUser.email);
+        setInitialRole(updatedUser.role);
+    } else {
+        toast({
+            title: "Update Failed",
+            description: "Could not save your profile changes. Please try again.",
+            variant: "destructive",
+        });
+    }
   };
 
   if (authLoading || !user) {
@@ -130,35 +133,12 @@ export function ProfileForm() {
           <SelectContent>
             {availableRoles.map(r => (
               <SelectItem key={r} value={r}>
-                {r.charAt(0).toUpperCase() + r.slice(1)}
+                {r.charAt(0).toUpperCase() + r.slice(1).toLowerCase()}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <p className="text-xs text-muted-foreground">
-          Changing your role here is for demo purposes. In a real application, role changes are typically restricted.
-        </p>
       </div>
-      
-      {(email !== initialEmail || selectedRole !== initialRole || displayName !== (user?.displayName || '')) && (
-        <div className="space-y-2 p-4 border border-dashed rounded-md bg-muted/50">
-            <Label htmlFor="currentPassword" className="flex items-center">
-            <KeyRound className="mr-2 h-4 w-4 text-muted-foreground" />
-            Current Password (to save changes)
-            </Label>
-            <Input
-            id="currentPassword"
-            type="password"
-            placeholder="Enter current password to confirm"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-                In a real application, your current password would be required to authorize these changes on the server.
-            </p>
-        </div>
-      )}
-
 
       <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
         {isLoading ? (

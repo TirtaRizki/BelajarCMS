@@ -23,9 +23,9 @@ export function AppHeader() {
 
   const displayName = user?.displayName || "User";
   const userEmail = user?.email || "user@example.com";
-  const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "N/A";
+  // API role is uppercase, so we just format it nicely.
+  const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase() : "N/A";
   
-  // More robust avatar fallback
   const getAvatarFallback = () => {
     if (user?.displayName && user.displayName.length >= 2) {
       return user.displayName.substring(0, 2).toUpperCase();
@@ -39,7 +39,7 @@ export function AppHeader() {
      if (user?.username && user.username.length === 1) {
       return user.username.toUpperCase();
     }
-    return "XX"; // Default fallback
+    return "XX";
   };
   const avatarFallback = getAvatarFallback();
 
@@ -70,7 +70,7 @@ export function AppHeader() {
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-64" align="end" forceMount> {/* Increased width */}
+        <DropdownMenuContent className="w-64" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{displayName}</p>

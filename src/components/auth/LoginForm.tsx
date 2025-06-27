@@ -10,21 +10,19 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn, Loader2, AlertCircle } from 'lucide-react';
-// import Link from 'next/link'; // Removed as per previous request
 
 export function LoginForm() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // Local loading state for the form submission, AuthContext has its own global isLoading
   const [isSubmitting, setIsSubmitting] = useState(false); 
-  const { login, authError } = useAuth(); // Get authError from context
+  const { login, authError } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
-    const success = await login(username, password);
+    const success = await login(email, password);
     setIsSubmitting(false);
     if (success) {
       router.push('/dashboard');
@@ -33,11 +31,9 @@ export function LoginForm() {
         description: "Welcome to Askhajaya!",
       });
     } else {
-      // Error is now handled by authError from context, but we can still show a toast
-      // The specific error message will come from authError
       toast({
         title: "Login Failed",
-        description: authError || "Invalid username or password. Please try again.",
+        description: authError || "Invalid email or password. Please try again.",
         variant: "destructive",
       });
     }
@@ -63,13 +59,13 @@ export function LoginForm() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="text-base"
             />
@@ -99,7 +95,6 @@ export function LoginForm() {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col items-center text-sm space-y-2 pt-4">
-        {/* Sign Up and Forgot Password links were previously removed */}
       </CardFooter>
     </Card>
   );
