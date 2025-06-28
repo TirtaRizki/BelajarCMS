@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setAuthError(null);
 
-      // Immediately set a mock user to unblock the UI and grant access to the dashboard.
+      // Set a mock user immediately to unblock the UI.
       const mockUser: User = {
         id: 'dev-user-01',
         username: 'tirta@gmail.com',
@@ -52,10 +52,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
       setUser(mockUser);
 
-      // REMOVED the call to fetchAndSetJwtAction.
-      // This eliminates the background fetch and the console error.
-      // The application will now function without a real JWT token.
-      console.log("AuthContext: Bypassing JWT fetch. Using mock user for development.");
+      // Now, try to get a REAL JWT token from the backend in the background.
+      // This is crucial for features that need to talk to the real API, like media uploads.
+      const jwtResponse = await fetchAndSetJwtAction();
+      if (!jwtResponse.success) {
+        // Log an error if it fails, but DON'T block the user.
+        // The user can still navigate the CMS, but API-dependent features will fail gracefully.
+        console.error("AuthContext: Failed to obtain JWT token in the background.", jwtResponse.error);
+      } else {
+        console.log("AuthContext: JWT token successfully obtained and set in cookies.");
+      }
       
       setIsLoading(false);
     };
@@ -64,9 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, pass: string): Promise<boolean> => {
-    // This function is kept for potential future use with a real login form.
-    // In the current "no-login" flow, authentication is handled automatically on load.
-    console.log("Login function called, but authentication is handled automatically.");
     setIsLoading(true);
     setAuthError(null);
     try {
@@ -92,12 +95,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutAction();
     } catch (e) {
-      // Error during logout is usually not critical to user, but log it.
       console.error("Logout Error:", e);
     } finally {
       setUser(null);
       setIsLoading(false);
-      // On logout, redirect to login page. To log back in, a refresh is needed.
       router.push('/login');
     }
   }, [router]);
@@ -107,14 +108,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthError("No user logged in to update.");
       return null;
     }
-    const userIdToUpdate = user.id || 4; // Use user ID or fallback
+    
+    // As we are using a mock user, we use a static ID for the profile update.
+    const userIdToUpdate = 'dev-user-01'; 
 
     setIsLoading(true);
     setAuthError(null);
     try {
+      // This action is mocked and will return a successful response.
       const response = await updateUserProfileAction(userIdToUpdate, updatedData);
       if (response.success && response.data) {
-        // Update local context with the new, normalized user data from the API/mock
         setUser(response.data);
         return response.data;
       } else {

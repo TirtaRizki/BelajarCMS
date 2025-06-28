@@ -23,8 +23,15 @@ export async function uploadMediaItemAction(
   newMediaData: Pick<MediaItem, 'name' | 'url' | 'altText'>
 ): Promise<ServerActionResponse<MediaItem>> {
   console.log('Server Action: uploadMediaItemAction for', newMediaData.name);
+  
+  if (!API_BASE_URL) {
+    return { success: false, error: "API_BASE_URL environment variable is not set. Cannot upload media." };
+  }
+
   const token = getAuthToken();
-  if (!token) return { success: false, error: 'Not authenticated.' };
+  if (!token) {
+    return { success: false, error: 'Not authenticated. Could not get JWT token to upload media.' };
+  }
 
   try {
     // Convert data URI to Blob for file upload
@@ -44,10 +51,15 @@ export async function uploadMediaItemAction(
       body: formData,
     });
 
+    if (!response.ok) {
+        const errorText = await response.text();
+        return { success: false, error: `File upload failed with status ${response.status}. Server says: ${errorText}` };
+    }
+
     const result = await response.json();
 
-    if (!response.ok || !result.success) {
-      return { success: false, error: result.message || 'File upload failed.' };
+    if (!result.success) {
+      return { success: false, error: result.message || 'File upload failed according to API response.' };
     }
 
     // Since the API only returns a URL, we'll construct a full MediaItem
@@ -65,6 +77,9 @@ export async function uploadMediaItemAction(
     return { success: true, data: createdMediaItem };
   } catch (error) {
     console.error('Upload Media Error:', error);
+    if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
+        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
+    }
     return { success: false, error: 'An unexpected error occurred during upload.' };
   }
 }
