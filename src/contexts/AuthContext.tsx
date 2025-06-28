@@ -36,23 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const initializeSession = async () => {
       setIsLoading(true);
       setAuthError(null);
-      
-      // Attempt to get a JWT token from the backend and set it in cookies.
-      const jwtResponse = await fetchAndSetJwtAction();
 
-      if (!jwtResponse.success) {
-        setAuthError("Could not authenticate with the backend. Please ensure the backend server is running and the /api/jwt endpoint is available.");
-        setIsLoading(false);
-        // Do not set user, so isAuthenticated remains false.
-        // On pages that require auth, this would trigger a redirect or show an error.
-        // Since we are bypassing login, we might want to show an error overlay.
-        return;
-      }
-      
-      // If JWT is obtained, create a mock user for the UI context
+      // Immediately set a mock user to unblock the UI and grant access to the dashboard.
       const mockUser: User = {
         id: 'dev-user-01',
         username: 'tirta@gmail.com',
@@ -63,15 +51,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: new Date().toISOString(),
       };
       setUser(mockUser);
+
+      // Attempt to fetch the real JWT from the backend in the background.
+      // The UI's logged-in state is no longer dependent on this succeeding.
+      const jwtResponse = await fetchAndSetJwtAction();
+
+      if (!jwtResponse.success) {
+        // Log an error to the server console for the developer to see.
+        // This won't block the UI, but it will help diagnose API connection issues
+        // when product management features fail.
+        console.error("AuthContext: Failed to obtain JWT token in the background.", jwtResponse.error);
+      } else {
+        console.log("AuthContext: JWT token successfully obtained and set in cookies.");
+      }
+
       setIsLoading(false);
     };
-    checkSession();
+
+    initializeSession();
   }, []);
 
   const login = useCallback(async (email: string, pass: string): Promise<boolean> => {
-    // This function can be used if you want to switch to a real login flow later.
-    // For now, the useEffect hook handles the automatic "login".
-    console.log("Login function called, but authentication is handled automatically on load.");
+    // This function is kept for potential future use with a real login form.
+    // In the current "no-login" flow, authentication is handled automatically on load.
+    console.log("Login function called, but authentication is handled automatically.");
     setIsLoading(true);
     setAuthError(null);
     try {
@@ -98,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await logoutAction();
     } catch (e) {
       // Error during logout is usually not critical to user, but log it.
+      console.error("Logout Error:", e);
     } finally {
       setUser(null);
       setIsLoading(false);
@@ -111,7 +115,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthError("No user logged in to update.");
       return null;
     }
-    // API expects a numeric ID for user updates. Using a hardcoded one for this dev flow.
     const userIdToUpdate = 4; // As per API docs example for PUT user.
 
     setIsLoading(true);
