@@ -13,32 +13,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { Save, Loader2, UserCircle, Mail, Shield, KeyRound } from 'lucide-react';
+import { Save, Loader2, UserCircle, Mail, Shield, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { User } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const availableRoles: User['role'][] = ['ADMIN', 'AUTHOR', 'OPERATOR'];
+const availableRoles: User['role'][] = ['ADMIN', 'AUTHOR', 'OPERATOR', 'USER'];
 
 export function ProfileForm() {
-  const { user, updateUserContext, isLoading: authLoading } = useAuth();
+  const { user, updateUserContext, isLoading: authLoading, backendOnline } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [selectedRole, setSelectedRole] = useState<User['role']>('OPERATOR');
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<User['role']>('USER');
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const [initialName, setInitialName] = useState('');
   const [initialEmail, setInitialEmail] = useState('');
-  const [initialRole, setInitialRole] = useState<User['role']>('OPERATOR');
+  const [initialRole, setInitialRole] = useState<User['role']>('USER');
 
   useEffect(() => {
     if (user) {
-      setName(user.name || '');
-      setEmail(user.email || '');
-      setSelectedRole(user.role || 'OPERATOR');
-      setInitialName(user.name || '');
-      setInitialEmail(user.email || '');
-      setInitialRole(user.role || 'OPERATOR');
+      const currentName = user.name || '';
+      const currentEmail = user.email || '';
+      const currentRole = user.role || 'USER';
+      setName(currentName);
+      setEmail(currentEmail);
+      setSelectedRole(currentRole);
+      setInitialName(currentName);
+      setInitialEmail(currentEmail);
+      setInitialRole(currentRole);
     }
   }, [user]);
 
@@ -46,7 +50,7 @@ export function ProfileForm() {
     event.preventDefault();
     if (!user) return;
 
-    const updates: Partial<Pick<User, 'name' | 'email' | 'role'>> = {};
+    const updates: Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt'>> = {};
     if (name !== initialName) updates.name = name;
     if (email !== initialEmail) updates.email = email;
     if (selectedRole !== initialRole) updates.role = selectedRole;
@@ -56,17 +60,16 @@ export function ProfileForm() {
       return;
     }
 
-    setIsLoading(true);
-
+    setIsProcessing(true);
     const updatedUser = await updateUserContext(updates);
-    
-    setIsLoading(false);
+    setIsProcessing(false);
 
     if (updatedUser) {
         toast({
           title: "Profile Updated",
           description: "Your profile information has been updated successfully.",
         });
+        // Update initial state to prevent re-saving same data
         setInitialName(updatedUser.name);
         setInitialEmail(updatedUser.email);
         setInitialRole(updatedUser.role);
@@ -76,6 +79,10 @@ export function ProfileForm() {
             description: "Could not save your profile changes. Please try again.",
             variant: "destructive",
         });
+        // Revert optimistic UI changes
+        setName(initialName);
+        setEmail(initialEmail);
+        setSelectedRole(initialRole);
     }
   };
 
@@ -86,9 +93,21 @@ export function ProfileForm() {
       </div>
     );
   }
+  
+  const isFormDisabled = isProcessing || !backendOnline;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+       {!backendOnline && (
+        <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Backend Offline</AlertTitle>
+            <AlertDescription>
+                Profile cannot be updated while the application is in offline mode.
+            </AlertDescription>
+        </Alert>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="name" className="flex items-center">
           <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -100,6 +119,7 @@ export function ProfileForm() {
           placeholder="Enter your full name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          disabled={isFormDisabled}
         />
       </div>
 
@@ -114,6 +134,7 @@ export function ProfileForm() {
           placeholder="Enter your email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={isFormDisabled}
         />
       </div>
 
@@ -122,7 +143,7 @@ export function ProfileForm() {
           <Shield className="mr-2 h-4 w-4 text-muted-foreground" />
           Role
         </Label>
-        <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as User['role'])}>
+        <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as User['role'])} disabled={isFormDisabled}>
           <SelectTrigger id="role">
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
@@ -136,8 +157,8 @@ export function ProfileForm() {
         </Select>
       </div>
 
-      <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
-        {isLoading ? (
+      <Button type="submit" className="w-full sm:w-auto" disabled={isFormDisabled}>
+        {isProcessing ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <Save className="mr-2 h-4 w-4" />

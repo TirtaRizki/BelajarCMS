@@ -24,7 +24,7 @@ interface EditProductModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   product: ProductItem | null;
-  onSave: (productId: string, updates: Partial<Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>>) => void;
+  onSave: (productId: number, updates: Partial<Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>>) => void;
   isProcessing: boolean;
 }
 
@@ -86,7 +86,7 @@ export function EditProductModal({ isOpen, onOpenChange, product, onSave, isProc
       image,
     };
     
-    onSave(String(product.id), updates);
+    onSave(product.id, updates);
   };
 
   if (!product) return null;

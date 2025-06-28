@@ -1,86 +1,121 @@
+
 'use server';
 
-import type { ProductItem, ServerActionResponse } from '@/types';
+import type { ProductItem, ServerActionResponse, ApiResponse } from '@/types';
+import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-// ===================================================================================
-// IMPORTANT: PRODUCT MANAGEMENT IS MOCKED
-// To ensure a smooth development experience without a backend dependency, this
-// feature operates on a temporary, in-memory data store.
-// All data will be lost on server restart.
-// ===================================================================================
+const API_BASE_URL = 'http://localhost:3001/api/products'; // Your backend API endpoint
 
-let mockProductStore: ProductItem[] = [
-    {
-        id: 'prod_1',
-        name: 'Keripik Pisang Original (Contoh)',
-        price: 15000,
-        description: 'Rasa original yang renyah dan gurih, dibuat dari pisang pilihan.',
-        image: 'https://placehold.co/600x400.png',
-        category: 'Keripik',
-        createdAt: new Date(new Date().setDate(new Date().getDate()-2)).toISOString(),
-        updatedAt: new Date(new Date().setDate(new Date().getDate()-2)).toISOString(),
-    },
-    {
-        id: 'prod_2',
-        name: 'Keripik Singkong Balado (Contoh)',
-        price: 12000,
-        description: 'Pedas manisnya pas, bikin nagih!',
-        image: 'https://placehold.co/600x400.png',
-        category: 'Keripik',
-        createdAt: new Date(new Date().setDate(new Date().getDate()-1)).toISOString(),
-        updatedAt: new Date(new Date().setDate(new Date().getDate()-1)).toISOString(),
-    },
-];
+// Helper to get the auth token from cookies
+const getAuthToken = (): string | undefined => cookies().get('token')?.value;
 
 export async function fetchProductsAction(): Promise<ServerActionResponse<ProductItem[]>> {
-  console.log('Server Action: fetchProductsAction (Mock)');
-  await new Promise(resolve => setTimeout(resolve, 50));
-  return { success: true, data: [...mockProductStore].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) };
-}
+  console.log('Server Action: fetchProductsAction (Real API)');
+  try {
+    const response = await fetch(API_BASE_URL, {
+      cache: 'no-store', 
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-export async function addProductAction(
-  newProductData: Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>
-): Promise<ServerActionResponse<ProductItem>> {
-  console.log('Server Action: addProductAction (Mock)');
-  await new Promise(resolve => setTimeout(resolve, 200));
-  const newProduct: ProductItem = {
-    ...newProductData,
-    id: `prod_${crypto.randomUUID()}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  mockProductStore.unshift(newProduct);
-  revalidatePath('/dashboard/products');
-  revalidatePath('/dashboard/analytics');
-  return { success: true, data: newProduct };
-}
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to fetch products: ${response.statusText}` }));
+      return { success: false, error: errorData.message };
+    }
 
-export async function updateProductAction(
-  productId: string,
-  updates: Partial<Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>>
-): Promise<ServerActionResponse<ProductItem>> {
-  console.log('Server Action: updateProductAction (Mock)');
-  await new Promise(resolve => setTimeout(resolve, 100));
-  const productIndex = mockProductStore.findIndex(p => String(p.id) === productId);
-  if (productIndex === -1) {
-    return { success: false, error: "Product not found in mock store." };
+    const result: ApiResponse<ProductItem[]> = await response.json();
+    return { success: true, data: result.data };
+  } catch (error: any) {
+    console.error('Error fetching products:', error);
+    return { success: false, error: error.message || 'An unexpected error occurred while fetching products.' };
   }
-  mockProductStore[productIndex] = { ...mockProductStore[productIndex], ...updates, updatedAt: new Date().toISOString() };
-  revalidatePath('/dashboard/products');
-  revalidatePath('/dashboard/analytics');
-  return { success: true, data: mockProductStore[productIndex] };
 }
 
-export async function deleteProductAction(productId: string): Promise<ServerActionResponse> {
-  console.log('Server Action: deleteProductAction (Mock)');
-  await new Promise(resolve => setTimeout(resolve, 100));
-  const initialLength = mockProductStore.length;
-  mockProductStore = mockProductStore.filter(p => String(p.id) !== productId);
-  if (mockProductStore.length === initialLength) {
-    return { success: false, error: "Product not found for deletion in mock store." };
+export async function addProductAction(newProduct: Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<ServerActionResponse<ProductItem>> {
+  console.log('Server Action: addProductAction for', newProduct.name);
+  const token = getAuthToken();
+  if (!token) return { success: false, error: "Authentication token not found." };
+  
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(newProduct),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to add product: ${response.statusText}` }));
+      return { success: false, error: errorData.message };
+    }
+
+    const result: ApiResponse<ProductItem> = await response.json();
+    revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard/analytics');
+    return { success: true, data: result.data };
+  } catch (error: any) {
+    console.error('Error adding product:', error);
+    return { success: false, error: error.message || 'An unexpected error occurred while adding the product.' };
   }
-  revalidatePath('/dashboard/products');
-  revalidatePath('/dashboard/analytics');
-  return { success: true };
+}
+
+export async function updateProductAction(productId: number, updates: Partial<Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>>): Promise<ServerActionResponse<ProductItem>> {
+  console.log(`Server Action: updateProductAction for ID ${productId}`);
+  const token = getAuthToken();
+  if (!token) return { success: false, error: "Authentication token not found." };
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/${productId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to update product: ${response.statusText}` }));
+      return { success: false, error: errorData.message };
+    }
+
+    const result: ApiResponse<ProductItem> = await response.json();
+    revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard/analytics');
+    return { success: true, data: result.data };
+  } catch (error: any) {
+    console.error(`Error updating product ${productId}:`, error);
+    return { success: false, error: error.message || 'An unexpected error occurred while updating the product.' };
+  }
+}
+
+export async function deleteProductAction(productId: number): Promise<ServerActionResponse> {
+  console.log(`Server Action: deleteProductAction for ID ${productId}`);
+  const token = getAuthToken();
+  if (!token) return { success: false, error: "Authentication token not found." };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to delete product: ${response.statusText}` }));
+      return { success: false, error: errorData.message };
+    }
+
+    revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard/analytics');
+    return { success: true };
+  } catch (error: any) {
+    console.error(`Error deleting product ${productId}:`, error);
+    return { success: false, error: error.message || 'An unexpected error occurred while deleting the product.' };
+  }
 }

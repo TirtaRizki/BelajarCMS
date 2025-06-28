@@ -45,7 +45,7 @@ export async function uploadMediaItemAction(
     name: newMediaData.name,
     url: newMediaData.url, // The URL is a base64 data URI from the form
     altText: newMediaData.altText,
-    uploadedAt: new Date(),
+    uploadedAt: new Date().toISOString(),
   };
 
   mockMediaItemStore.unshift(createdMediaItem);

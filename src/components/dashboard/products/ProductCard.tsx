@@ -5,7 +5,7 @@ import NextImage from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { ProductItem } from '@/types';
-import { CalendarDays, Pencil, Trash2, Loader2, Tag, DollarSign } from 'lucide-react'; 
+import { CalendarDays, Pencil, Trash2, Loader2, Tag } from 'lucide-react'; 
 import { format } from 'date-fns';
 import {
   AlertDialog,
@@ -23,7 +23,7 @@ import type React from 'react';
 interface ProductCardProps {
   product: ProductItem;
   onEdit: (product: ProductItem) => void;
-  onDelete: (productId: string) => void;
+  onDelete: (productId: number) => void;
   isProcessing: boolean;
 }
 
@@ -31,7 +31,7 @@ export function ProductCard({ product, onEdit, onDelete, isProcessing }: Product
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); 
-    onDelete(String(product.id));
+    onDelete(product.id);
   };
 
   const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(product.price);
