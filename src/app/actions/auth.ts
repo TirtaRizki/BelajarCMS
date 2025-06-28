@@ -8,102 +8,55 @@ import { getAuthToken } from '@/lib/api-helpers';
 const API_BASE_URL = process.env.API_BASE_URL;
 
 export async function fetchAndSetJwtAction(): Promise<ServerActionResponse<{token: string}>> {
-  console.log('Server Action: fetchAndSetJwtAction');
-   if (!API_BASE_URL) {
-      const errorMessage = "API_BASE_URL environment variable is not set. Cannot fetch JWT.";
-      console.error(errorMessage);
-      return { success: false, error: errorMessage };
-  }
-  try {
-    const response = await fetch(`${API_BASE_URL}/jwt`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: 'BBC' }),
-    });
+  console.log('Server Action: fetchAndSetJwtAction (Mock)');
+  // This is a mock implementation to prevent errors when the backend is not ready.
+  // It simulates a successful JWT fetch and sets a mock token.
+  await new Promise(resolve => setTimeout(resolve, 50)); 
+  const mockToken = 'mock-jwt-token-for-development';
+  
+  cookies().set('token', mockToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 60 * 60, // 1 hour expiration
+  });
 
-    const contentType = response.headers.get('content-type');
-    if (!response.ok || !contentType || !contentType.includes('application/json')) {
-        const errorText = await response.text();
-        console.error('Failed to fetch JWT with non-JSON response:', errorText);
-        return { success: false, error: `The JWT endpoint returned an unexpected response (Status: ${response.status}). Please check the backend server logs.` };
-    }
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success || !result.token) {
-      console.error('Failed to fetch JWT:', result.message || 'No token in response.');
-      return { success: false, error: result.message || 'Failed to obtain JWT.' };
-    }
-
-    cookies().set('token', result.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 60 * 60, // 1 hour expiration
-    });
-
-    return { success: true, data: { token: result.token } };
-
-  } catch (error) {
-    console.error('JWT Fetching Error:', error);
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-        return { success: false, error: `A TypeError occurred during fetch. Is the API URL '${API_BASE_URL}' correct?` };
-    }
-    if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
-        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
-    }
-    return { success: false, error: 'An unexpected error occurred while fetching JWT.' };
-  }
+  return { success: true, data: { token: mockToken } };
 }
 
 
 export async function loginAction(email: string, pass: string): Promise<ServerActionResponse<User>> {
-  console.log('Server Action: loginAction attempt for', email);
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: pass }),
-    });
+  console.log('Server Action: loginAction (Mock) attempt for', email);
 
-    const contentType = response.headers.get('content-type');
-    if (!response.ok || !contentType || !contentType.includes('application/json')) {
-        const errorText = await response.text();
-        console.error('Login failed with non-JSON response:', errorText);
-        const errorMessage = response.status === 401 
-            ? 'Invalid email or password.' 
-            : `The server returned an unexpected response (Status: ${response.status}). Please check the backend server logs.`;
-        return { success: false, error: errorMessage };
-    }
+  // This is a mock implementation.
+  await new Promise(resolve => setTimeout(resolve, 500)); 
 
-    const result = await response.json();
-
-    if (!result.success || !result.token) {
-      return { success: false, error: result.message || 'Invalid email or password' };
-    }
+  // For this demo, any login is considered successful.
+  if (email && pass) {
+    const mockUser: User = {
+        id: 'dev-user-01',
+        username: email,
+        email: email,
+        displayName: 'Tirta (from Mock Login)',
+        role: 'ADMIN',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
     
-    cookies().set('token', result.token, {
+    const mockToken = 'mock-jwt-token-from-login';
+    cookies().set('token', mockToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
+      maxAge: 60 * 60,
     });
     
-    const profileResponse = await fetchUserProfile(result.token);
-    if (profileResponse.success && profileResponse.data) {
-        return { success: true, data: profileResponse.data };
-    } else {
-        await logoutAction();
-        return { success: false, error: "Login succeeded but failed to fetch user profile. The backend might be missing a profile endpoint." };
-    }
-
-  } catch (error) {
-    console.error('Login Error:', error);
-    if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
-        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
-    }
-    return { success: false, error: 'An unexpected error occurred during login.' };
+    // In this mock flow, we just return the user data directly.
+    return { success: true, data: mockUser };
+  } else {
+    return { success: false, error: "Invalid credentials (mock)" };
   }
 }
 
