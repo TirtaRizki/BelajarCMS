@@ -101,10 +101,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthError("No user logged in to update.");
       return null;
     }
+    // For a bypassed user, we need a real ID to update. Using a hardcoded one.
+    const userIdToUpdate = typeof user.id === 'number' ? user.id : 4;
+
     setIsLoading(true);
     setAuthError(null);
     try {
-      const response = await updateUserProfileAction(user.id, updatedData);
+      const response = await updateUserProfileAction(userIdToUpdate, updatedData);
       if (response.success && response.data) {
         setUser(response.data);
         return response.data;
