@@ -7,6 +7,42 @@ import { getAuthToken } from '@/lib/api-helpers';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
+export async function fetchAndSetJwtAction(): Promise<ServerActionResponse<{token: string}>> {
+  console.log('Server Action: fetchAndSetJwtAction');
+  try {
+    const response = await fetch(`${API_BASE_URL}/jwt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: 'BBC' }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success || !result.token) {
+      console.error('Failed to fetch JWT:', result.message || 'No token in response.');
+      return { success: false, error: result.message || 'Failed to obtain JWT.' };
+    }
+
+    cookies().set('token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60, // 1 hour expiration
+    });
+
+    return { success: true, data: { token: result.token } };
+
+  } catch (error) {
+    console.error('JWT Fetching Error:', error);
+    if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
+        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
+    }
+    return { success: false, error: 'An unexpected error occurred while fetching JWT.' };
+  }
+}
+
+
 export async function loginAction(email: string, pass: string): Promise<ServerActionResponse<User>> {
   console.log('Server Action: loginAction attempt for', email);
   try {

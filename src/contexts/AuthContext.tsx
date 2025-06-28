@@ -5,7 +5,7 @@ import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User, ServerActionResponse } from '@/types';
-import { loginAction, fetchUserProfile, updateUserProfileAction, logoutAction } from '@/app/actions/auth';
+import { fetchAndSetJwtAction, loginAction, fetchUserProfile, updateUserProfileAction, logoutAction } from '@/app/actions/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -39,7 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkSession = async () => {
       setIsLoading(true);
       setAuthError(null);
-      // Bypassing real authentication for development by creating a mock user
+      
+      // Attempt to get a JWT token from the backend and set it in cookies.
+      const jwtResponse = await fetchAndSetJwtAction();
+
+      if (!jwtResponse.success) {
+        setAuthError("Could not authenticate with the backend. Please ensure the backend server is running and the /api/jwt endpoint is available.");
+        setIsLoading(false);
+        // Do not set user, so isAuthenticated remains false.
+        // On pages that require auth, this would trigger a redirect or show an error.
+        // Since we are bypassing login, we might want to show an error overlay.
+        return;
+      }
+      
+      // If JWT is obtained, create a mock user for the UI context
       const mockUser: User = {
         id: 'dev-user-01',
         username: 'tirta@gmail.com',
@@ -56,21 +69,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, pass: string): Promise<boolean> => {
-    // This function is now effectively bypassed by the useEffect hook above.
-    // It's kept here to prevent errors if it's called from the UI.
-    console.log("Login function called, but authentication is currently bypassed for development.");
+    // This function can be used if you want to switch to a real login flow later.
+    // For now, the useEffect hook handles the automatic "login".
+    console.log("Login function called, but authentication is handled automatically on load.");
     setIsLoading(true);
     setAuthError(null);
     try {
-      // We still call the real action to allow for testing the login flow if needed,
-      // but the app state is already authenticated by default.
       const response = await loginAction(email, pass);
       if (response.success && response.data) {
         setUser(response.data);
         return true;
       } else {
         setAuthError(getErrorMessage(response.error, "Login failed. Please check your credentials."));
-        // Don't set user to null, to keep the bypass active
         return false;
       }
     } catch (e) {
@@ -91,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null);
       setIsLoading(false);
-      // On logout, redirect to login page. To log back in during bypass, a refresh is needed.
+      // On logout, redirect to login page. To log back in, a refresh is needed.
       router.push('/login');
     }
   }, [router]);
@@ -101,14 +111,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthError("No user logged in to update.");
       return null;
     }
-    // For a bypassed user, we need a real ID to update. Using a hardcoded one.
-    const userIdToUpdate = typeof user.id === 'number' ? user.id : 4;
+    // API expects a numeric ID for user updates. Using a hardcoded one for this dev flow.
+    const userIdToUpdate = 4; // As per API docs example for PUT user.
 
     setIsLoading(true);
     setAuthError(null);
     try {
       const response = await updateUserProfileAction(userIdToUpdate, updatedData);
       if (response.success && response.data) {
+        // Update local context with the new, normalized user data from the API
         setUser(response.data);
         return response.data;
       } else {
