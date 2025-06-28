@@ -10,7 +10,7 @@ const API_BASE_URL = process.env.API_BASE_URL;
 export async function fetchProductsAction(): Promise<ServerActionResponse<ProductItem[]>> {
   console.log('Server Action: fetchProductsAction');
   try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
+    const response = await fetch(`${API_BASE_URL}/products/`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store', // Ensure fresh data
@@ -72,6 +72,7 @@ export async function addProductAction(
     }
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard/analytics');
     return { success: true, data: result.data };
   } catch (error) {
     console.error('Add Product Error:', error);
@@ -103,6 +104,7 @@ export async function updateProductAction(
     }
     
     revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard/analytics');
     return { success: true, data: result.data };
   } catch (error) {
     console.error('Update Product Error:', error);
@@ -129,6 +131,7 @@ export async function deleteProductAction(productId: string): Promise<ServerActi
     }
     
     revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard/analytics');
     return { success: true };
   } catch (error) {
     console.error('Delete Product Error:', error);
