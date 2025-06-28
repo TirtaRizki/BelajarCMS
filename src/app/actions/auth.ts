@@ -50,12 +50,8 @@ export async function loginAction(email: string, pass: string): Promise<ServerAc
 // Mock profile fetch.
 export async function fetchUserProfile(tokenOverride?: string): Promise<ServerActionResponse<User | null>> {
   console.log('Server Action: fetchUserProfile (Mock)');
-  const token = tokenOverride || getAuthToken();
-
-  if (!token) {
-    return { success: true, data: null };
-  }
-  
+  // In the mock setup, we directly return the mock user without a token check
+  // to ensure a smooth and error-free startup experience for development.
   await new Promise(resolve => setTimeout(resolve, 50)); 
   return { success: true, data: mockUserStore };
 }
@@ -66,11 +62,8 @@ export async function updateUserProfileAction(
   updates: Partial<Pick<User, 'name' | 'email' | 'role'>>
 ): Promise<ServerActionResponse<User>> {
    console.log('Server Action: updateUserProfileAction (Mock) for ID', userId);
-   const token = getAuthToken();
-   if (!token) {
-    return { success: false, error: 'Authentication token not found (mock). Cannot update profile.' };
-  }
-
+   // The token check is removed in the mock implementation to allow profile updates
+   // without a real backend connection.
    await new Promise(resolve => setTimeout(resolve, 100));
 
    // Update the in-memory mock user

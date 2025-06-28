@@ -40,15 +40,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setAuthError(null);
       
-      // Since all auth actions are now mocked for a smooth development experience,
-      // we can directly fetch the mock profile.
-      await fetchAndSetJwtAction(); // This sets a mock cookie.
+      // In a fully mocked environment, we directly fetch the mock user profile
+      // without performing a token exchange first. This ensures the app starts
+      // quickly and without errors, even if the backend is unavailable.
       const profileResponse = await fetchUserProfile();
 
       if (profileResponse.success && profileResponse.data) {
         setUser(profileResponse.data);
       } else {
-        // This case should ideally not happen with a mocked backend
+        // This case should not happen with the updated mock fetchUserProfile action.
         console.error("AuthContext: Could not initialize mock session.", profileResponse.error);
         setUser(null);
       }
@@ -62,10 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, pass: string): Promise<boolean> => {
     setIsLoading(true);
     setAuthError(null);
-    // All actions are mocked, so this just uses the mock login action.
     const response = await loginAction(email, pass);
     if (response.success && response.data) {
       setUser(response.data);
+      await fetchAndSetJwtAction(); // Set a mock cookie on successful login for consistency
       setIsLoading(false);
       return true;
     } else {
@@ -92,7 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setIsLoading(true);
     setAuthError(null);
-    // Uses the mocked update action.
     const response = await updateUserProfileAction(user.id, updatedData);
     if (response.success && response.data) {
       setUser(response.data);
