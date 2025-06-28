@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LayoutDashboard, MessageSquare, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen, BarChart3, Newspaper, FileText, LibraryBig, Package } from 'lucide-react';
+import { LayoutDashboard, User, Settings, LogOut, PanelLeftClose, PanelLeftOpen, BarChart3, LibraryBig, Package } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -23,9 +23,6 @@ const menuItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/media', label: 'Media Library', icon: LibraryBig },
   { href: '/dashboard/products', label: 'Product Management', icon: Package },
-  { href: '/dashboard/testimonials', label: 'Testimonials', icon: MessageSquare },
-  { href: '/dashboard/news', label: 'News Management', icon: Newspaper },
-  { href: '/dashboard/articles', label: 'Article Management', icon: FileText },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { type: 'separator' as const },
   { href: '/dashboard/profile', label: 'User Profile', icon: User },

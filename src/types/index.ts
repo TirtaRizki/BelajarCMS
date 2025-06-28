@@ -17,34 +17,6 @@ export interface MediaItem {
   uploadedAt: Date | string;
 }
 
-export interface TestimonialItem {
-  id: string | number;
-  author: string;
-  quote: string;
-  createdAt: Date | string;
-}
-
-export interface NewsItem {
-  id: string | number;
-  title: string;
-  content: string;
-  author: string;
-  category: string;
-  publishedAt: Date | string;
-  imageUrl?: string;
-}
-
-export interface ArticleItem {
-  id: string | number;
-  title: string;
-  content: string; 
-  author: string;
-  category: string;
-  tags?: string[];
-  publishedAt: Date | string;
-  imageUrl?: string;
-}
-
 export interface ProductItem {
   id: string | number;
   name: string;
