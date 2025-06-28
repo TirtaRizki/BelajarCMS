@@ -5,136 +5,106 @@ import type { ProductItem, ServerActionResponse } from '@/types';
 import { getAuthToken } from '@/lib/api-helpers';
 import { revalidatePath } from 'next/cache';
 
-const API_BASE_URL = process.env.API_BASE_URL;
+// The live API endpoint for fetching products is returning a 404 Not Found error.
+// To unblock development, we will use a mock in-memory store for all product
+// actions for the duration of the server session. Once the backend endpoint is
+// confirmed to be working, this mock implementation can be replaced with real API calls.
+let mockProductStore: ProductItem[] = [
+    {
+        id: 'prod_1',
+        name: 'Keripik Pisang Original',
+        price: 15000,
+        description: 'Keripik pisang renyah dengan rasa original yang otentik.',
+        image: 'https://placehold.co/600x400.png',
+        category: 'Keripik',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    },
+    {
+        id: 'prod_2',
+        name: 'Keripik Singkong Balado',
+        price: 12000,
+        description: 'Keripik singkong pedas dengan bumbu balado khas.',
+        image: 'https://placehold.co/600x400.png',
+        category: 'Keripik',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+    },
+];
 
 export async function fetchProductsAction(): Promise<ServerActionResponse<ProductItem[]>> {
-  console.log('Server Action: fetchProductsAction');
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      cache: 'no-store', // Ensure fresh data
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Fetch Products failed:', errorText);
-        return { success: false, error: `The server returned an unexpected response (Status: ${response.status}).` };
-    }
-    
-    const result = await response.json();
-    if (!result.success) {
-      return { success: false, error: result.message || "Failed to fetch products." };
-    }
-    
-    // The API wraps the data in a `data` property
-    const products: ProductItem[] = result.data.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        description: item.description,
-        image: item.image,
-        category: item.category,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-    }));
-
-    return { success: true, data: products };
-  } catch (error) {
-    console.error('Fetch Products Error:', error);
-    if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
-        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
-    }
-    return { success: false, error: 'An unexpected error occurred while fetching products.' };
-  }
+  console.log('Server Action: fetchProductsAction (Mock)');
+  // This is a mock implementation as the API is returning 404.
+  await new Promise(resolve => setTimeout(resolve, 50)); 
+  // Return a sorted copy
+  return { success: true, data: [...mockProductStore].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) };
 }
 
 export async function addProductAction(
   newProductData: Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<ServerActionResponse<ProductItem>> {
-  console.log('Server Action: addProductAction for', newProductData.name);
+  console.log('Server Action: addProductAction (Mock) for', newProductData.name);
   const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated." };
+  // We'll keep the token check to simulate a protected action
+  if (!token) return { success: false, error: "Not authenticated (mock check)." };
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(newProductData),
-    });
+  await new Promise(resolve => setTimeout(resolve, 50));
 
-    const result = await response.json();
-    if (!response.ok || !result.success) {
-      return { success: false, error: result.message || "Failed to add product." };
-    }
+  const newProduct: ProductItem = {
+    id: `prod_${crypto.randomUUID()}`,
+    ...newProductData,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
-    revalidatePath('/dashboard/products');
-    revalidatePath('/dashboard/analytics');
-    return { success: true, data: result.data };
-  } catch (error) {
-    console.error('Add Product Error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
-  }
+  mockProductStore.unshift(newProduct);
+  
+  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/analytics');
+  return { success: true, data: newProduct };
 }
 
 export async function updateProductAction(
   productId: string,
   updates: Partial<Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>>
 ): Promise<ServerActionResponse<ProductItem>> {
-  console.log('Server Action: updateProductAction for ID', productId);
+  console.log('Server Action: updateProductAction (Mock) for ID', productId);
   const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated." };
+  if (!token) return { success: false, error: "Not authenticated (mock check)." };
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(updates),
-    });
-
-    const result = await response.json();
-    if (!response.ok || !result.success) {
-      return { success: false, error: result.message || "Failed to update product." };
-    }
-    
-    revalidatePath('/dashboard/products');
-    revalidatePath('/dashboard/analytics');
-    return { success: true, data: result.data };
-  } catch (error) {
-    console.error('Update Product Error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
+  await new Promise(resolve => setTimeout(resolve, 50));
+  
+  const itemIndex = mockProductStore.findIndex(item => String(item.id) === productId);
+  if (itemIndex === -1) {
+    return { success: false, error: "Product not found." };
   }
+  
+  mockProductStore[itemIndex] = { 
+    ...mockProductStore[itemIndex], 
+    ...updates,
+    updatedAt: new Date(),
+  };
+
+  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/analytics');
+  return { success: true, data: mockProductStore[itemIndex] };
 }
 
 export async function deleteProductAction(productId: string): Promise<ServerActionResponse> {
-  console.log('Server Action: deleteProductAction for ID', productId);
+  console.log('Server Action: deleteProductAction (Mock) for ID', productId);
   const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated." };
+  if (!token) return { success: false, error: "Not authenticated (mock check)." };
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-    });
+  await new Promise(resolve => setTimeout(resolve, 50));
 
-    if (!response.ok) {
-       const result = await response.json().catch(() => ({ message: 'Failed to delete product.' }));
-       return { success: false, error: result.message };
-    }
-    
-    revalidatePath('/dashboard/products');
-    revalidatePath('/dashboard/analytics');
-    return { success: true };
-  } catch (error) {
-    console.error('Delete Product Error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
+  const initialLength = mockProductStore.length;
+  mockProductStore = mockProductStore.filter(item => String(item.id) !== productId);
+  
+  if (mockProductStore.length === initialLength) {
+     return { success: false, error: "Product not found for deletion." };
   }
+  
+  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/analytics');
+  return { success: true };
 }
