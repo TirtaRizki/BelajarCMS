@@ -52,19 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
       setUser(mockUser);
 
-      // Attempt to fetch the real JWT from the backend in the background.
-      // The UI's logged-in state is no longer dependent on this succeeding.
-      const jwtResponse = await fetchAndSetJwtAction();
-
-      if (!jwtResponse.success) {
-        // Log an error to the server console for the developer to see.
-        // This won't block the UI, but it will help diagnose API connection issues
-        // when product management features fail.
-        console.error("AuthContext: Failed to obtain JWT token in the background.", jwtResponse.error);
-      } else {
-        console.log("AuthContext: JWT token successfully obtained and set in cookies.");
-      }
-
+      // REMOVED the call to fetchAndSetJwtAction.
+      // This eliminates the background fetch and the console error.
+      // The application will now function without a real JWT token.
+      console.log("AuthContext: Bypassing JWT fetch. Using mock user for development.");
+      
       setIsLoading(false);
     };
 
@@ -115,14 +107,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthError("No user logged in to update.");
       return null;
     }
-    const userIdToUpdate = 4; // As per API docs example for PUT user.
+    const userIdToUpdate = user.id || 4; // Use user ID or fallback
 
     setIsLoading(true);
     setAuthError(null);
     try {
       const response = await updateUserProfileAction(userIdToUpdate, updatedData);
       if (response.success && response.data) {
-        // Update local context with the new, normalized user data from the API
+        // Update local context with the new, normalized user data from the API/mock
         setUser(response.data);
         return response.data;
       } else {

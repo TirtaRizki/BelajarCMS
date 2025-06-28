@@ -9,6 +9,11 @@ const API_BASE_URL = process.env.API_BASE_URL;
 
 export async function fetchAndSetJwtAction(): Promise<ServerActionResponse<{token: string}>> {
   console.log('Server Action: fetchAndSetJwtAction');
+   if (!API_BASE_URL) {
+      const errorMessage = "API_BASE_URL environment variable is not set. Cannot fetch JWT.";
+      console.error(errorMessage);
+      return { success: false, error: errorMessage };
+  }
   try {
     const response = await fetch(`${API_BASE_URL}/jwt`, {
       method: 'POST',
@@ -35,6 +40,9 @@ export async function fetchAndSetJwtAction(): Promise<ServerActionResponse<{toke
 
   } catch (error) {
     console.error('JWT Fetching Error:', error);
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+        return { success: false, error: `A TypeError occurred during fetch. Is the API URL '${API_BASE_URL}' correct?` };
+    }
     if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
         return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
     }
@@ -120,46 +128,29 @@ export async function updateUserProfileAction(
   userId: string | number,
   updates: Partial<Pick<User, 'displayName' | 'email' | 'role'>>
 ): Promise<ServerActionResponse<User>> {
-  console.log(`Server Action: updateUserProfileAction for user ${userId} with data:`, updates);
-  const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated." };
+  console.log(`Server Action: updateUserProfileAction (Mock) for user ${userId} with data:`, updates);
+  
+  // As we don't have a user database, we'll merge the updates with a static mock user.
+  // This simulates the backend returning the full updated user object.
+  await new Promise(resolve => setTimeout(resolve, 50)); 
+  
+  const baseUser: User = {
+    id: userId,
+    username: 'tirta@gmail.com',
+    email: 'tirta@gmail.com',
+    displayName: 'Tirta (Dev)',
+    role: 'ADMIN',
+    createdAt: new Date(new Date().setDate(new Date().getDate()-1)).toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 
-  const payload: any = {};
-  if (updates.displayName) payload.name = updates.displayName;
-  if (updates.email) payload.email = updates.email;
-  if (updates.role) payload.role = updates.role.toUpperCase();
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json();
-    if (!result.success) {
-      return { success: false, error: result.message || "Failed to update profile." };
-    }
-    
-    const responseData = result.data;
-    const normalizedUser: User = {
-        id: responseData.id,
-        username: responseData.email,
-        email: responseData.email,
-        displayName: responseData.name,
-        role: responseData.role.toUpperCase(),
-        createdAt: responseData.createdAt,
-        updatedAt: responseData.updatedAt,
-    };
-
-    return { success: true, data: normalizedUser };
-  } catch (error) {
-    console.error('Update Profile Error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
+  const updatedUser: User = {
+      ...baseUser,
+      ...updates,
+      updatedAt: new Date().toISOString()
   }
+
+  return { success: true, data: updatedUser };
 }
 
 export async function logoutAction(): Promise<ServerActionResponse> {

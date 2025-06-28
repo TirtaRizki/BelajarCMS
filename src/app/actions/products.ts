@@ -2,157 +2,115 @@
 'use server';
 
 import type { ProductItem, ServerActionResponse } from '@/types';
-import { getAuthToken } from '@/lib/api-helpers';
 import { revalidatePath } from 'next/cache';
 
-const API_BASE_URL = process.env.API_BASE_URL;
-
-async function handleApiResponse<T>(response: Response): Promise<ServerActionResponse<T>> {
-    const contentType = response.headers.get('content-type');
-    if (!response.ok || !contentType || !contentType.includes('application/json')) {
-        const errorText = await response.text();
-        console.error('API call failed with non-JSON response:', errorText);
-        const errorMessage = `The server returned an unexpected response (Status: ${response.status}). Please check the backend server logs.`;
-        return { success: false, error: errorMessage };
+// Mock in-memory store for products. This will reset on server restart.
+let mockProductStore: ProductItem[] = [
+    {
+        id: 'prod_1',
+        name: 'Keripik Pisang Original',
+        price: 15000,
+        description: 'Rasa original yang renyah dan gurih, dibuat dari pisang pilihan.',
+        image: 'https://placehold.co/600x400.png',
+        category: 'Keripik',
+        createdAt: new Date(new Date().setDate(new Date().getDate()-2)).toISOString(),
+        updatedAt: new Date(new Date().setDate(new Date().getDate()-2)).toISOString(),
+    },
+    {
+        id: 'prod_2',
+        name: 'Keripik Singkong Balado',
+        price: 18000,
+        description: 'Pedas manis bumbu balado yang meresap sempurna.',
+        image: 'https://placehold.co/600x400.png',
+        category: 'Keripik',
+        createdAt: new Date(new Date().setDate(new Date().getDate()-1)).toISOString(),
+        updatedAt: new Date(new Date().setDate(new Date().getDate()-1)).toISOString(),
+    },
+    {
+        id: 'prod_3',
+        name: 'Basreng Pedas Daun Jeruk',
+        price: 22000,
+        description: 'Bakso goreng renyah dengan aroma daun jeruk yang khas.',
+        image: 'https://placehold.co/600x400.png',
+        category: 'Cemilan Kering',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
     }
+];
 
-    const result = await response.json();
-    if (!result.success) {
-      return { success: false, error: result.message || 'An unknown API error occurred.' };
-    }
-    
-    // The API wraps data in a 'data' property. Let's normalize it.
-    const responseData = result.data;
-    
-    // The product endpoints return a slightly different structure. Let's normalize here.
-    const normalizedData = Array.isArray(responseData) 
-        ? responseData.map(p => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            description: p.description,
-            image: p.image,
-            category: p.category,
-            createdAt: p.createdAt,
-            updatedAt: p.updatedAt,
-        }))
-        : {
-            id: responseData.id,
-            name: responseData.name,
-            price: responseData.price,
-            description: responseData.description,
-            image: responseData.image,
-            category: responseData.category,
-            createdAt: responseData.createdAt,
-            updatedAt: responseData.updatedAt,
-        };
+// Helper to sort products by creation date
+const sortProducts = () => {
+    mockProductStore.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+};
+sortProducts();
 
-    return { success: true, data: normalizedData as T };
-}
 
 export async function fetchProductsAction(): Promise<ServerActionResponse<ProductItem[]>> {
-  console.log('Server Action: fetchProductsAction (Real API)');
-  const token = getAuthToken();
-  if (!token) return { success: false, error: "Authentication token not found." };
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` },
-      cache: 'no-store', // Ensure fresh data on every fetch
-    });
-    return await handleApiResponse<ProductItem[]>(response);
-  } catch (error) {
-     if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
-        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
-    }
-    return { success: false, error: 'An unexpected error occurred.' };
-  }
+  console.log('Server Action: fetchProductsAction (Mock)');
+  await new Promise(resolve => setTimeout(resolve, 50)); 
+  return { success: true, data: [...mockProductStore] };
 }
 
 export async function addProductAction(
   newProductData: Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<ServerActionResponse<ProductItem>> {
-  console.log('Server Action: addProductAction (Real API) for', newProductData.name);
-  const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated." };
+  console.log('Server Action: addProductAction (Mock) for', newProductData.name);
+  await new Promise(resolve => setTimeout(resolve, 50));
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(newProductData),
-    });
+  const newProduct: ProductItem = {
+    ...newProductData,
+    id: `prod_${crypto.randomUUID()}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 
-    const result = await handleApiResponse<ProductItem>(response);
-    if(result.success) {
-        revalidatePath('/dashboard/products');
-        revalidatePath('/dashboard/analytics');
-    }
-    return result;
-  } catch (error) {
-    console.error('Add Product Error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
-  }
+  mockProductStore.unshift(newProduct);
+  sortProducts();
+
+  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/analytics');
+
+  return { success: true, data: newProduct };
 }
 
 export async function updateProductAction(
   productId: string,
   updates: Partial<Omit<ProductItem, 'id' | 'createdAt' | 'updatedAt'>>
 ): Promise<ServerActionResponse<ProductItem>> {
-  console.log('Server Action: updateProductAction (Real API) for ID', productId);
-  const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated." };
+  console.log('Server Action: updateProductAction (Mock) for ID', productId);
+  await new Promise(resolve => setTimeout(resolve, 50));
+  
+  const productIndex = mockProductStore.findIndex(p => String(p.id) === productId);
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(updates),
-    });
-
-    const result = await handleApiResponse<ProductItem>(response);
-    if(result.success) {
-        revalidatePath('/dashboard/products');
-        revalidatePath('/dashboard/analytics');
-    }
-    return result;
-  } catch (error) {
-    console.error('Update Product Error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
+  if (productIndex === -1) {
+    return { success: false, error: "Product not found." };
   }
+  
+  mockProductStore[productIndex] = {
+    ...mockProductStore[productIndex],
+    ...updates,
+    updatedAt: new Date().toISOString(),
+  };
+  
+  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/analytics');
+
+  return { success: true, data: mockProductStore[productIndex] };
 }
 
 export async function deleteProductAction(productId: string): Promise<ServerActionResponse> {
-  console.log('Server Action: deleteProductAction (Real API) for ID', productId);
-  const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated." };
+  console.log('Server Action: deleteProductAction (Mock) for ID', productId);
+  await new Promise(resolve => setTimeout(resolve, 50));
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    
-    // Delete might not return a JSON body, so handle differently
-    if(response.ok) {
-        revalidatePath('/dashboard/products');
-        revalidatePath('/dashboard/analytics');
-        return { success: true };
-    } else {
-        const errorText = await response.text();
-        console.error('Delete failed with response:', errorText);
-        const errorMessage = `The server returned an unexpected response (Status: ${response.status}).`;
-        return { success: false, error: errorMessage };
-    }
-  } catch (error) {
-    console.error('Delete Product Error:', error);
-    return { success: false, error: 'An unexpected error occurred.' };
+  const initialLength = mockProductStore.length;
+  mockProductStore = mockProductStore.filter(p => String(p.id) !== productId);
+
+  if (mockProductStore.length === initialLength) {
+    return { success: false, error: "Product not found for deletion." };
   }
+
+  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/analytics');
+
+  return { success: true };
 }
