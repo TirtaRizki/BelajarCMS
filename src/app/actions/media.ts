@@ -7,14 +7,28 @@ import { getAuthToken } from '@/lib/api-helpers';
 const API_BASE_URL = process.env.API_BASE_URL;
 
 // The live API does not support listing, updating, or deleting media items.
-// We will use a mock in-memory store for these actions to keep the UI functional
-// for the duration of the server session. The upload action, however, will
-// call the real API endpoint.
-let mockMediaItemStore: MediaItem[] = []; 
+// We will use a mock in-memory store for all media actions to keep the UI functional
+// for the duration of the server session.
+let mockMediaItemStore: MediaItem[] = [
+    {
+        id: 'media-1',
+        name: 'askhajaya-logo.png',
+        url: 'https://placehold.co/600x400.png',
+        altText: 'Askhajaya company logo',
+        uploadedAt: new Date(new Date().setDate(new Date().getDate()-1)).toISOString(),
+    },
+    {
+        id: 'media-2',
+        name: 'product-packaging.jpg',
+        url: 'https://placehold.co/600x400.png',
+        altText: 'Packaging design for keripik products',
+        uploadedAt: new Date().toISOString(),
+    }
+]; 
 
 export async function fetchMediaItemsAction(): Promise<ServerActionResponse<MediaItem[]>> {
   console.log('Server Action: fetchMediaItemsAction (Mock)');
-  // This is a mock implementation as the API does not support listing media.
+  // This is a mock implementation.
   await new Promise(resolve => setTimeout(resolve, 50)); 
   return { success: true, data: [...mockMediaItemStore].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()) };
 }
@@ -22,70 +36,22 @@ export async function fetchMediaItemsAction(): Promise<ServerActionResponse<Medi
 export async function uploadMediaItemAction(
   newMediaData: Pick<MediaItem, 'name' | 'url' | 'altText'>
 ): Promise<ServerActionResponse<MediaItem>> {
-  console.log('Server Action: uploadMediaItemAction for', newMediaData.name);
+  console.log('Server Action: uploadMediaItemAction (Mock) for', newMediaData.name);
   
-  if (!API_BASE_URL) {
-    return { success: false, error: "API_BASE_URL environment variable is not set. Cannot upload media." };
-  }
+  // This is a mock implementation. It adds the new media item to the in-memory store.
+  await new Promise(resolve => setTimeout(resolve, 500));
 
-  // Use a placeholder token for development since the JWT endpoint is not ready.
-  // This allows media uploads to be tested against the backend.
-  // TODO: Replace with `getAuthToken()` once the /api/jwt endpoint is functional.
-  const token = 'mock-jwt-token-for-development';
-  if (!token) {
-    // This block will now effectively not be reached, but we keep it for future consistency.
-    return { success: false, error: 'Not authenticated. Could not get JWT token to upload media.' };
-  }
+  const createdMediaItem: MediaItem = {
+    id: crypto.randomUUID(),
+    name: newMediaData.name,
+    url: newMediaData.url, // The URL is a base64 data URI from the form
+    altText: newMediaData.altText,
+    uploadedAt: new Date(),
+  };
 
-  try {
-    // Convert data URI to Blob for file upload
-    const fetchRes = await fetch(newMediaData.url);
-    const blob = await fetchRes.blob();
+  mockMediaItemStore.unshift(createdMediaItem);
     
-    const formData = new FormData();
-    // The API expects the file under the 'file' key
-    formData.append('file', blob, newMediaData.name);
-
-    const response = await fetch(`${API_BASE_URL}/media`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        // Note: Do not set 'Content-Type' for FormData, `fetch` handles it.
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        return { success: false, error: `File upload failed with status ${response.status}. Server says: ${errorText}` };
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      return { success: false, error: result.message || 'File upload failed according to API response.' };
-    }
-
-    // Since the API only returns a URL, we'll construct a full MediaItem
-    // to return to the client and add it to our mock store for listing.
-    const createdMediaItem: MediaItem = {
-      id: crypto.randomUUID(), // Use a random ID as the API doesn't provide one
-      name: newMediaData.name,
-      url: result.url, // Use the URL from the API response
-      altText: newMediaData.altText,
-      uploadedAt: new Date(),
-    };
-
-    mockMediaItemStore.unshift(createdMediaItem);
-    
-    return { success: true, data: createdMediaItem };
-  } catch (error) {
-    console.error('Upload Media Error:', error);
-    if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
-        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
-    }
-    return { success: false, error: 'An unexpected error occurred during upload.' };
-  }
+  return { success: true, data: createdMediaItem };
 }
 
 export async function updateMediaItemAction(
