@@ -28,8 +28,12 @@ export async function uploadMediaItemAction(
     return { success: false, error: "API_BASE_URL environment variable is not set. Cannot upload media." };
   }
 
-  const token = getAuthToken();
+  // Use a placeholder token for development since the JWT endpoint is not ready.
+  // This allows media uploads to be tested against the backend.
+  // TODO: Replace with `getAuthToken()` once the /api/jwt endpoint is functional.
+  const token = 'mock-jwt-token-for-development';
   if (!token) {
+    // This block will now effectively not be reached, but we keep it for future consistency.
     return { success: false, error: 'Not authenticated. Could not get JWT token to upload media.' };
   }
 
