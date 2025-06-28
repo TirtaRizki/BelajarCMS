@@ -39,28 +39,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeSession = async () => {
       setIsLoading(true);
       setAuthError(null);
+      
+      // Since all auth actions are now mocked for a smooth development experience,
+      // we can directly fetch the mock profile.
+      await fetchAndSetJwtAction(); // This sets a mock cookie.
+      const profileResponse = await fetchUserProfile();
 
-      // Set a mock user immediately to unblock the UI and allow dashboard access.
-      const mockUser: User = {
-        id: 'dev-user-01',
-        name: 'Tirta (Dev)',
-        email: 'tirta@gmail.com',
-        role: 'ADMIN',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setUser(mockUser);
-
-      // Now, try to get a REAL JWT token from the backend in the background.
-      // This will not block the UI. It allows the app to work in "offline mode"
-      // if the backend is not available.
-      const jwtResponse = await fetchAndSetJwtAction();
-      if (!jwtResponse.success) {
-        // Log an error if it fails, but DON'T block the user.
-        // The user can still navigate the CMS, but API-dependent features will fail gracefully.
-        console.error("AuthContext: Failed to obtain JWT token in the background.", jwtResponse.error);
+      if (profileResponse.success && profileResponse.data) {
+        setUser(profileResponse.data);
       } else {
-        console.log("AuthContext: JWT token successfully obtained and set in cookies.");
+        // This case should ideally not happen with a mocked backend
+        console.error("AuthContext: Could not initialize mock session.", profileResponse.error);
+        setUser(null);
       }
       
       setIsLoading(false);
@@ -72,36 +62,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, pass: string): Promise<boolean> => {
     setIsLoading(true);
     setAuthError(null);
-    try {
-      // This uses the mock login action to grant access.
-      const response = await loginAction(email, pass);
-      if (response.success && response.data) {
-        setUser(response.data);
-        return true;
-      } else {
-        setAuthError(getErrorMessage(response.error, "Login failed. Please check your credentials."));
-        return false;
-      }
-    } catch (e) {
-      setAuthError("An unexpected error occurred during login.");
-      return false;
-    } finally {
+    // All actions are mocked, so this just uses the mock login action.
+    const response = await loginAction(email, pass);
+    if (response.success && response.data) {
+      setUser(response.data);
       setIsLoading(false);
+      return true;
+    } else {
+      setAuthError(getErrorMessage(response.error, "Login failed. Please check your credentials."));
+      setIsLoading(false);
+      return false;
     }
   }, []);
 
   const logout = useCallback(async () => {
     setIsLoading(true);
     setAuthError(null);
-    try {
-      await logoutAction();
-    } catch (e) {
-      console.error("Logout Error:", e);
-    } finally {
-      setUser(null);
-      setIsLoading(false);
-      router.push('/login');
-    }
+    await logoutAction();
+    setUser(null);
+    setIsLoading(false);
+    router.push('/login');
   }, [router]);
 
   const updateUserContext = useCallback(async (updatedData: Partial<Pick<User, 'name' | 'email' | 'role'>>): Promise<User | null> => {
@@ -110,26 +90,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
     
-    // In a real app, user.id would come from the logged-in user session.
-    // For this hybrid approach, we use a consistent ID for the API call.
-    const userIdToUpdate = 1; 
-
     setIsLoading(true);
     setAuthError(null);
-    try {
-      const response = await updateUserProfileAction(userIdToUpdate, updatedData);
-      if (response.success && response.data) {
-        setUser(response.data); // Update context with the response from the API
-        return response.data;
-      } else {
-        setAuthError(getErrorMessage(response.error, "Failed to update profile."));
-        return null; 
-      }
-    } catch (e) {
-      setAuthError("An unexpected error occurred while updating profile.");
-      return null;
-    } finally {
+    // Uses the mocked update action.
+    const response = await updateUserProfileAction(user.id, updatedData);
+    if (response.success && response.data) {
+      setUser(response.data);
       setIsLoading(false);
+      return response.data;
+    } else {
+      setAuthError(getErrorMessage(response.error, "Failed to update profile."));
+      setIsLoading(false);
+      return null; 
     }
   }, [user]);
   
