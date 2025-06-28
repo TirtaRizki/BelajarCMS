@@ -13,8 +13,8 @@ import { LogIn, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('tirta@gmail.com');
+  const [password, setPassword] = useState('admin123');
   const [isSubmitting, setIsSubmitting] = useState(false); 
   const { login, authError } = useAuth();
   const router = useRouter();
