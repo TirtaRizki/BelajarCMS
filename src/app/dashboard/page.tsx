@@ -9,6 +9,7 @@ import type { ServerActionResponse, MediaItem, ProductItem } from '@/types';
 import { fetchMediaItemsAction } from '@/app/actions/media';
 import { fetchProductsAction } from '@/app/actions/products';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 export default function DashboardOverviewPage() {
@@ -16,22 +17,34 @@ export default function DashboardOverviewPage() {
   const [productCount, setProductCount] = useState<number | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const { toast } = useToast();
+  const { backendOnline } = useAuth();
 
   useEffect(() => {
     const loadStats = async () => {
       setIsLoadingStats(true);
       try {
-        const [mediaRes, productsRes] = await Promise.all([
-          fetchMediaItemsAction(),
-          fetchProductsAction(),
-        ]);
+        // Media items are always mocked, so this part is fine.
+        const mediaRes = await fetchMediaItemsAction();
+        if (mediaRes.success && mediaRes.data) {
+            setMediaCount(mediaRes.data.length);
+        } else {
+            setMediaCount(0);
+            console.error("Error fetching media items:", mediaRes.error);
+        }
 
-        if (mediaRes.success && mediaRes.data) setMediaCount(mediaRes.data.length);
-        else { setMediaCount(0); console.error("Error fetching media items:", mediaRes.error); }
-        
-        if (productsRes.success && productsRes.data) setProductCount(productsRes.data.length);
-        else { setProductCount(0); console.error("Error fetching products:", productsRes.error); }
-
+        // Products depend on backend status.
+        if (backendOnline) {
+            const productsRes = await fetchProductsAction();
+            if (productsRes.success && productsRes.data) {
+                setProductCount(productsRes.data.length);
+            } else {
+                setProductCount(0);
+                console.error("Error fetching products:", productsRes.error);
+            }
+        } else {
+            // If offline, use the mock count for consistency with the products page.
+            setProductCount(2);
+        }
 
       } catch (error) {
         console.error("Error loading stats from server actions:", error);
@@ -43,7 +56,7 @@ export default function DashboardOverviewPage() {
       }
     };
     loadStats();
-  }, [toast]);
+  }, [toast, backendOnline]);
 
   return (
     <div className="space-y-8">
