@@ -57,36 +57,27 @@ export async function loginAction(email: string, pass: string): Promise<ServerAc
 }
 
 export async function fetchUserProfile(tokenOverride?: string): Promise<ServerActionResponse<User | null>> {
+  console.log('Server Action: fetchUserProfile (Mock)');
   const token = tokenOverride || getAuthToken();
 
   if (!token) {
     return { success: true, data: null };
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+  // This is a mock implementation as the API does not have a profile endpoint.
+  // We'll return a hardcoded user if a token exists.
+  await new Promise(resolve => setTimeout(resolve, 50)); 
+  const mockUser: User = {
+    id: 'dev-user-01',
+    username: 'tirta@gmail.com',
+    email: 'tirta@gmail.com',
+    displayName: 'Tirta (from Mock Profile)',
+    role: 'ADMIN',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 
-    if (response.status === 401 || response.status === 403) {
-      await logoutAction();
-      return { success: true, data: null };
-    }
-    
-    const result = await response.json();
-    if (!result.success) {
-      return { success: false, data: null, error: result.message };
-    }
-    
-    if (result.data && result.data.role) {
-      result.data.role = result.data.role.toUpperCase();
-    }
-    
-    return { success: true, data: result.data };
-  } catch (error) {
-    console.error('Fetch User Profile Error:', error);
-    return { success: false, data: null, error: 'An unexpected error occurred while fetching profile.' };
-  }
+  return { success: true, data: mockUser };
 }
 
 export async function updateUserProfileAction(
