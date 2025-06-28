@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { fetchMediaItemsAction } from '@/app/actions/media';
 import { fetchProductsAction } from '@/app/actions/products';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StatData {
   media: number | null;
@@ -50,6 +51,7 @@ export function AnalyticsClient() {
   const [stats, setStats] = useState<StatData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { backendOnline } = useAuth();
 
   const [trafficData, setTrafficData] = useState<typeof mockTrafficData>([]);
   const [contentViews, setContentViews] = useState<typeof mockContentViews>([]);
@@ -60,23 +62,33 @@ export function AnalyticsClient() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const [mediaRes, productsRes] = await Promise.all([
-          fetchMediaItemsAction(),
-          fetchProductsAction(),
-        ]);
+        // Media items are always mocked and available
+        const mediaRes = await fetchMediaItemsAction();
+        const mediaCount = (mediaRes.success && mediaRes.data) ? mediaRes.data.length : 0;
         
+        let productCount = 0;
+        // Products depend on backend status
+        if (backendOnline) {
+            const productsRes = await fetchProductsAction();
+            if (productsRes.success && productsRes.data) {
+                productCount = productsRes.data.length;
+            } else {
+                console.error("Error fetching products for analytics:", productsRes.error);
+            }
+        } else {
+            // If offline, use the mock count for consistency
+            productCount = 2; 
+        }
+
         setStats({
-          media: (mediaRes.success && mediaRes.data) ? mediaRes.data.length : 0,
-          products: (productsRes.success && productsRes.data) ? productsRes.data.length : 0,
+          media: mediaCount,
+          products: productCount,
         });
 
+        // Set mock data for other charts
         setTrafficData(mockTrafficData);
         setContentViews(mockContentViews.sort((a, b) => b.views - a.views)); 
         setReferralSources(mockReferralSources.sort((a,b) => b.count - a.count));
-
-        if (!mediaRes.success) console.error("Error fetching media for analytics:", mediaRes.error);
-        if (!productsRes.success) console.error("Error fetching products for analytics:", productsRes.error);
-
 
       } catch (error) {
         console.error("Error loading stats from server actions for analytics:", error);
@@ -87,7 +99,7 @@ export function AnalyticsClient() {
       }
     };
     fetchStats();
-  }, [toast]);
+  }, [toast, backendOnline]);
 
   const contentCountChartData = stats ? [
     { name: 'Media', count: stats.media ?? 0, fill: "hsl(var(--chart-1))" },
@@ -320,3 +332,5 @@ function StatDisplayCard({ title, value, icon: Icon, valueContent }: StatDisplay
     </Card>
   )
 }
+
+    
