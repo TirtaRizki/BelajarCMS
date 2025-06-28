@@ -4,16 +4,6 @@
 import type { User, ServerActionResponse, ApiResponse } from '@/types';
 import { cookies } from 'next/headers';
 
-// This is the user that will be loaded if the backend is offline.
-export const MOCK_ADMIN_USER: User = {
-    id: 1,
-    name: 'Admin (Offline Mode)',
-    email: 'admin.offline@example.com',
-    role: 'ADMIN',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-};
-
 /**
  * Fetches a JWT from the backend and stores it in a secure, HTTP-only cookie.
  * This is the primary mechanism for authenticating server-to-server requests.
@@ -58,8 +48,15 @@ export async function fetchAndSetJwtAction(): Promise<ServerActionResponse<{toke
 export async function loginAction(email: string, pass: string): Promise<ServerActionResponse<User>> {
   console.log('MOCK: loginAction called for', email);
   if (email && pass) {
-    // We return a mock user, but the key is that `fetchAndSetJwtAction` will have already run
-    // and set a real cookie if the backend is available.
+    // This action now primarily serves to trigger the re-authentication flow in the AuthContext.
+    const MOCK_ADMIN_USER: User = {
+        id: 1,
+        name: 'Admin (Offline Mode)',
+        email: 'admin.offline@example.com',
+        role: 'ADMIN',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
     return { success: true, data: MOCK_ADMIN_USER };
   } else {
     return { success: false, error: "Invalid credentials (mock)" };

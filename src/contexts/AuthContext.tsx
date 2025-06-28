@@ -5,7 +5,7 @@ import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@/types';
-import { loginAction, logoutAction, fetchAndSetJwtAction, MOCK_ADMIN_USER } from '@/app/actions/auth';
+import { loginAction, logoutAction, fetchAndSetJwtAction } from '@/app/actions/auth';
 import { fetchUsersAction, updateUserAction } from '@/app/actions/users';
 
 interface AuthContextType {
@@ -20,6 +20,16 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// This is the user that will be loaded if the backend is offline.
+const MOCK_ADMIN_USER: User = {
+    id: 1,
+    name: 'Admin (Offline Mode)',
+    email: 'admin.offline@example.com',
+    role: 'ADMIN',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -72,11 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (response.success) {
       // Re-initialize to fetch real data if backend is now online
       await initializeAuth();
-      setIsLoading(false);
       return true;
     } else {
-      setAuthError("Login failed (mock response).");
-      setIsLoading(false);
+      setAuthError(response.error || "Login failed.");
       return false;
     }
   }, [initializeAuth]);
