@@ -39,38 +39,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkSession = async () => {
       setIsLoading(true);
       setAuthError(null);
-      try {
-        const response = await fetchUserProfile();
-        if (response.success && response.data) {
-          setUser(response.data);
-        } else {
-          setUser(null);
-        }
-      } catch (e) {
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
+      // Bypassing real authentication for development by creating a mock user
+      const mockUser: User = {
+        id: 'dev-user-01',
+        username: 'tirta@gmail.com',
+        email: 'tirta@gmail.com',
+        displayName: 'Tirta (Dev)',
+        role: 'ADMIN',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setUser(mockUser);
+      setIsLoading(false);
     };
     checkSession();
   }, []);
 
   const login = useCallback(async (email: string, pass: string): Promise<boolean> => {
+    // This function is now effectively bypassed by the useEffect hook above.
+    // It's kept here to prevent errors if it's called from the UI.
+    console.log("Login function called, but authentication is currently bypassed for development.");
     setIsLoading(true);
     setAuthError(null);
     try {
+      // We still call the real action to allow for testing the login flow if needed,
+      // but the app state is already authenticated by default.
       const response = await loginAction(email, pass);
       if (response.success && response.data) {
         setUser(response.data);
         return true;
       } else {
         setAuthError(getErrorMessage(response.error, "Login failed. Please check your credentials."));
-        setUser(null);
+        // Don't set user to null, to keep the bypass active
         return false;
       }
     } catch (e) {
       setAuthError("An unexpected error occurred during login.");
-      setUser(null);
       return false;
     } finally {
       setIsLoading(false);
@@ -87,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null);
       setIsLoading(false);
+      // On logout, redirect to login page. To log back in during bypass, a refresh is needed.
       router.push('/login');
     }
   }, [router]);
