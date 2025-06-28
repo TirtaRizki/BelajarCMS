@@ -21,6 +21,13 @@ export async function fetchAndSetJwtAction(): Promise<ServerActionResponse<{toke
       body: JSON.stringify({ code: 'BBC' }),
     });
 
+    const contentType = response.headers.get('content-type');
+    if (!response.ok || !contentType || !contentType.includes('application/json')) {
+        const errorText = await response.text();
+        console.error('Failed to fetch JWT with non-JSON response:', errorText);
+        return { success: false, error: `The JWT endpoint returned an unexpected response (Status: ${response.status}). Please check the backend server logs.` };
+    }
+
     const result = await response.json();
 
     if (!response.ok || !result.success || !result.token) {
