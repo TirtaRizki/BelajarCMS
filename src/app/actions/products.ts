@@ -14,6 +14,15 @@ export async function fetchProductsAction(): Promise<ServerActionResponse<Produc
       headers: { 'Content-Type': 'application/json' },
       next: { tags: ['products'] },
     });
+
+    const contentType = response.headers.get('content-type');
+    if (!response.ok || !contentType || !contentType.includes('application/json')) {
+        const errorText = await response.text();
+        console.error('Fetch products failed with non-JSON response:', errorText);
+        const errorMessage = `The server returned an unexpected response (Status: ${response.status}). Please check the backend server logs.`;
+        return { success: false, error: errorMessage };
+    }
+    
     const result = await response.json();
     if (!result.success) {
       return { success: false, error: result.message || "Failed to fetch products." };
@@ -21,6 +30,9 @@ export async function fetchProductsAction(): Promise<ServerActionResponse<Produc
     return { success: true, data: result.data };
   } catch (error) {
     console.error('Fetch Products Error:', error);
+    if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED'))) {
+        return { success: false, error: `Could not connect to the backend at ${API_BASE_URL}. Is the backend server running?` };
+    }
     return { success: false, error: 'An unexpected error occurred.' };
   }
 }
