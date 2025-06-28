@@ -28,6 +28,13 @@ const nextConfig: NextConfig = {
         hostname: 'storage.googleapis.com',
         port: '',
         pathname: '/**',
+      },
+      // Added from API documentation examples
+      {
+        protocol: 'https',
+        hostname: 'google.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
-  updateUserContext: (updatedData: Partial<Pick<User, 'displayName' | 'email' | 'role'>>) => Promise<User | null>;
+  updateUserContext: (updatedData: Partial<Pick<User, 'name' | 'email' | 'role'>>) => Promise<User | null>;
   isLoading: boolean;
   authError: string | null;
 }
@@ -40,12 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setAuthError(null);
 
-      // Set a mock user immediately to unblock the UI.
+      // Set a mock user immediately to unblock the UI and allow dashboard access.
       const mockUser: User = {
         id: 'dev-user-01',
-        username: 'tirta@gmail.com',
+        name: 'Tirta (Dev)',
         email: 'tirta@gmail.com',
-        displayName: 'Tirta (Dev)',
         role: 'ADMIN',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -53,7 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(mockUser);
 
       // Now, try to get a REAL JWT token from the backend in the background.
-      // This is crucial for features that need to talk to the real API, like media uploads.
+      // This will not block the UI. It allows the app to work in "offline mode"
+      // if the backend is not available.
       const jwtResponse = await fetchAndSetJwtAction();
       if (!jwtResponse.success) {
         // Log an error if it fails, but DON'T block the user.
@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     setAuthError(null);
     try {
+      // This uses the mock login action to grant access.
       const response = await loginAction(email, pass);
       if (response.success && response.data) {
         setUser(response.data);
@@ -103,22 +104,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
-  const updateUserContext = useCallback(async (updatedData: Partial<Pick<User, 'displayName' | 'email' | 'role'>>): Promise<User | null> => {
+  const updateUserContext = useCallback(async (updatedData: Partial<Pick<User, 'name' | 'email' | 'role'>>): Promise<User | null> => {
     if (!user) {
       setAuthError("No user logged in to update.");
       return null;
     }
     
-    // As we are using a mock user, we use a static ID for the profile update.
-    const userIdToUpdate = 'dev-user-01'; 
+    // In a real app, user.id would come from the logged-in user session.
+    // For this hybrid approach, we use a consistent ID for the API call.
+    const userIdToUpdate = 1; 
 
     setIsLoading(true);
     setAuthError(null);
     try {
-      // This action is mocked and will return a successful response.
       const response = await updateUserProfileAction(userIdToUpdate, updatedData);
       if (response.success && response.data) {
-        setUser(response.data);
+        setUser(response.data); // Update context with the response from the API
         return response.data;
       } else {
         setAuthError(getErrorMessage(response.error, "Failed to update profile."));

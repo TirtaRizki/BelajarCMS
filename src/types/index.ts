@@ -1,10 +1,10 @@
 
+
 export interface User {
   id: string | number; 
-  username: string;
+  name: string;
   email: string;
-  displayName: string;
-  role: 'ADMIN' | 'AUTHOR' | 'OPERATOR'; // Changed to uppercase to match API
+  role: 'ADMIN' | 'AUTHOR' | 'OPERATOR' | 'USER'; // Added 'USER' from API docs
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -28,6 +28,15 @@ export interface ProductItem {
   updatedAt: Date | string;
 }
 
+// Represents the API's top-level response structure
+export type ApiResponse<T> = {
+  success: boolean;
+  message?: string;
+  data?: T;
+  token?: string; // For JWT response
+};
+
+// Represents the response from a Server Action
 export type ServerActionResponse<T = null> = {
   success: boolean;
   data?: T;

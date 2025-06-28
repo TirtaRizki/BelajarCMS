@@ -17,29 +17,26 @@ import { Save, Loader2, UserCircle, Mail, Shield, KeyRound } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext';
 import type { User } from '@/types';
 
-// Roles are now uppercase to match API
 const availableRoles: User['role'][] = ['ADMIN', 'AUTHOR', 'OPERATOR'];
 
 export function ProfileForm() {
   const { user, updateUserContext, isLoading: authLoading } = useAuth();
-  const [displayName, setDisplayName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState<User['role']>('OPERATOR');
-  // This password field is just for local verification logic, not sent to API unless specified
-  const [currentPassword, setCurrentPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const [initialDisplayName, setInitialDisplayName] = useState('');
+  const [initialName, setInitialName] = useState('');
   const [initialEmail, setInitialEmail] = useState('');
   const [initialRole, setInitialRole] = useState<User['role']>('OPERATOR');
 
   useEffect(() => {
     if (user) {
-      setDisplayName(user.displayName || '');
+      setName(user.name || '');
       setEmail(user.email || '');
       setSelectedRole(user.role || 'OPERATOR');
-      setInitialDisplayName(user.displayName || '');
+      setInitialName(user.name || '');
       setInitialEmail(user.email || '');
       setInitialRole(user.role || 'OPERATOR');
     }
@@ -49,8 +46,8 @@ export function ProfileForm() {
     event.preventDefault();
     if (!user) return;
 
-    const updates: Partial<Pick<User, 'displayName' | 'email' | 'role'>> = {};
-    if (displayName !== initialDisplayName) updates.displayName = displayName;
+    const updates: Partial<Pick<User, 'name' | 'email' | 'role'>> = {};
+    if (name !== initialName) updates.name = name;
     if (email !== initialEmail) updates.email = email;
     if (selectedRole !== initialRole) updates.role = selectedRole;
 
@@ -70,8 +67,7 @@ export function ProfileForm() {
           title: "Profile Updated",
           description: "Your profile information has been updated successfully.",
         });
-        // Reset initial values to the new ones
-        setInitialDisplayName(updatedUser.displayName);
+        setInitialName(updatedUser.name);
         setInitialEmail(updatedUser.email);
         setInitialRole(updatedUser.role);
     } else {
@@ -94,16 +90,16 @@ export function ProfileForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="displayName" className="flex items-center">
+        <Label htmlFor="name" className="flex items-center">
           <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" />
-          Display Name
+          Name
         </Label>
         <Input
-          id="displayName"
+          id="name"
           type="text"
-          placeholder="Enter your display name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
+          placeholder="Enter your full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
       </div>
 

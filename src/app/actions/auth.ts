@@ -1,49 +1,67 @@
 
 'use server';
 
-import type { User, ServerActionResponse } from '@/types';
+import type { User, ServerActionResponse, ApiResponse } from '@/types';
 import { cookies } from 'next/headers';
 import { getAuthToken } from '@/lib/api-helpers';
 
-const API_BASE_URL = process.env.API_BASE_URL;
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001/api';
 
 export async function fetchAndSetJwtAction(): Promise<ServerActionResponse<{token: string}>> {
-  console.log('Server Action: fetchAndSetJwtAction (Mock)');
-  // This is a mock implementation to prevent errors when the backend is not ready.
-  // It simulates a successful JWT fetch and sets a mock token.
-  await new Promise(resolve => setTimeout(resolve, 50)); 
-  const mockToken = 'mock-jwt-token-for-development';
-  
-  cookies().set('token', mockToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
-    maxAge: 60 * 60, // 1 hour expiration
-  });
+  try {
+    console.log('Server Action: Attempting to fetch JWT from', `${API_BASE_URL}/jwt`);
+    const response = await fetch(`${API_BASE_URL}/jwt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: "BBC" }),
+      cache: 'no-store',
+    });
 
-  return { success: true, data: { token: mockToken } };
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`JWT fetch failed with status ${response.status}:`, errorText);
+      return { success: false, error: `The JWT endpoint returned an unexpected response (Status: ${response.status}). Please check the backend server logs.` };
+    }
+
+    const result: ApiResponse<{ token: string }> = await response.json();
+    
+    if (result.success && result.token) {
+      cookies().set('token', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 60 * 60, // 1 hour
+      });
+      return { success: true, data: { token: result.token } };
+    } else {
+      return { success: false, error: "Failed to get token from API response." };
+    }
+  } catch (error) {
+    console.error("An unexpected error occurred while fetching JWT:", error);
+    if (error instanceof TypeError && error.message.includes('fetch failed')) {
+      return { success: false, error: "Could not connect to the backend. Please ensure the backend server is running." };
+    }
+    return { success: false, error: "An unexpected error occurred while fetching JWT." };
+  }
 }
 
-
+// This remains a mock to allow easy entry into the dashboard during development.
 export async function loginAction(email: string, pass: string): Promise<ServerActionResponse<User>> {
   console.log('Server Action: loginAction (Mock) attempt for', email);
-
-  // This is a mock implementation.
   await new Promise(resolve => setTimeout(resolve, 500)); 
 
-  // For this demo, any login is considered successful.
   if (email && pass) {
     const mockUser: User = {
         id: 'dev-user-01',
-        username: email,
+        name: 'Tirta (from Mock Login)',
         email: email,
-        displayName: 'Tirta (from Mock Login)',
         role: 'ADMIN',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };
     
+    // We simulate setting a token, although fetchAndSetJwtAction is the primary source
     const mockToken = 'mock-jwt-token-from-login';
     cookies().set('token', mockToken, {
       httpOnly: true,
@@ -53,13 +71,13 @@ export async function loginAction(email: string, pass: string): Promise<ServerAc
       maxAge: 60 * 60,
     });
     
-    // In this mock flow, we just return the user data directly.
     return { success: true, data: mockUser };
   } else {
     return { success: false, error: "Invalid credentials (mock)" };
   }
 }
 
+// The API spec doesn't have a GET /me or /profile endpoint, so we keep this mocked.
 export async function fetchUserProfile(tokenOverride?: string): Promise<ServerActionResponse<User | null>> {
   console.log('Server Action: fetchUserProfile (Mock)');
   const token = tokenOverride || getAuthToken();
@@ -67,15 +85,12 @@ export async function fetchUserProfile(tokenOverride?: string): Promise<ServerAc
   if (!token) {
     return { success: true, data: null };
   }
-
-  // This is a mock implementation as the API does not have a profile endpoint.
-  // We'll return a hardcoded user if a token exists.
+  
   await new Promise(resolve => setTimeout(resolve, 50)); 
   const mockUser: User = {
     id: 'dev-user-01',
-    username: 'tirta@gmail.com',
+    name: 'Tirta (from Mock Profile)',
     email: 'tirta@gmail.com',
-    displayName: 'Tirta (from Mock Profile)',
     role: 'ADMIN',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -86,31 +101,37 @@ export async function fetchUserProfile(tokenOverride?: string): Promise<ServerAc
 
 export async function updateUserProfileAction(
   userId: string | number,
-  updates: Partial<Pick<User, 'displayName' | 'email' | 'role'>>
+  updates: Partial<Pick<User, 'name' | 'email' | 'role'>>
 ): Promise<ServerActionResponse<User>> {
-  console.log(`Server Action: updateUserProfileAction (Mock) for user ${userId} with data:`, updates);
-  
-  // As we don't have a user database, we'll merge the updates with a static mock user.
-  // This simulates the backend returning the full updated user object.
-  await new Promise(resolve => setTimeout(resolve, 50)); 
-  
-  const baseUser: User = {
-    id: userId,
-    username: 'tirta@gmail.com',
-    email: 'tirta@gmail.com',
-    displayName: 'Tirta (Dev)',
-    role: 'ADMIN',
-    createdAt: new Date(new Date().setDate(new Date().getDate()-1)).toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  const updatedUser: User = {
-      ...baseUser,
-      ...updates,
-      updatedAt: new Date().toISOString()
+   const token = getAuthToken();
+  if (!token) {
+    return { success: false, error: 'Authentication token not found. Cannot update profile.' };
   }
 
-  return { success: true, data: updatedUser };
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(updates),
+      cache: 'no-store',
+    });
+
+    const result: ApiResponse<User> = await response.json();
+
+    if (!result.success) {
+      return { success: false, error: result.message || 'Failed to update user profile.' };
+    }
+    
+    return { success: true, data: result.data };
+  } catch (error) {
+     if (error instanceof TypeError && error.message.includes('fetch failed')) {
+      return { success: false, error: "Could not connect to the backend to update profile." };
+    }
+    return { success: false, error: 'An unexpected error occurred during profile update.' };
+  }
 }
 
 export async function logoutAction(): Promise<ServerActionResponse> {

@@ -2,13 +2,15 @@
 'use server';
 
 import type { MediaItem, ServerActionResponse } from '@/types';
-import { getAuthToken } from '@/lib/api-helpers';
 
-const API_BASE_URL = process.env.API_BASE_URL;
+// ===================================================================================
+// IMPORTANT: MEDIA MANAGEMENT IS MOCKED
+// The provided API documentation does not include endpoints for media/image management
+// (list, upload, update, delete). Therefore, this feature operates on a temporary,
+// in-memory data store to allow UI development without a backend dependency.
+// All data will be lost on server restart.
+// ===================================================================================
 
-// The live API does not support listing, updating, or deleting media items.
-// We will use a mock in-memory store for all media actions to keep the UI functional
-// for the duration of the server session.
 let mockMediaItemStore: MediaItem[] = [
     {
         id: 'media-1',
@@ -28,7 +30,6 @@ let mockMediaItemStore: MediaItem[] = [
 
 export async function fetchMediaItemsAction(): Promise<ServerActionResponse<MediaItem[]>> {
   console.log('Server Action: fetchMediaItemsAction (Mock)');
-  // This is a mock implementation.
   await new Promise(resolve => setTimeout(resolve, 50)); 
   return { success: true, data: [...mockMediaItemStore].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()) };
 }
@@ -37,8 +38,6 @@ export async function uploadMediaItemAction(
   newMediaData: Pick<MediaItem, 'name' | 'url' | 'altText'>
 ): Promise<ServerActionResponse<MediaItem>> {
   console.log('Server Action: uploadMediaItemAction (Mock) for', newMediaData.name);
-  
-  // This is a mock implementation. It adds the new media item to the in-memory store.
   await new Promise(resolve => setTimeout(resolve, 500));
 
   const createdMediaItem: MediaItem = {
@@ -59,7 +58,6 @@ export async function updateMediaItemAction(
   updates: Partial<Pick<MediaItem, 'name' | 'altText'>>
 ): Promise<ServerActionResponse<MediaItem>> {
   console.log('Server Action: updateMediaItemAction (Mock) for ID', mediaId);
-  // This is a mock implementation.
   await new Promise(resolve => setTimeout(resolve, 50));
 
   const itemIndex = mockMediaItemStore.findIndex(item => item.id === mediaId);
@@ -77,7 +75,6 @@ export async function updateMediaItemAction(
 
 export async function deleteMediaItemAction(mediaId: string): Promise<ServerActionResponse> {
   console.log('Server Action: deleteMediaItemAction (Mock) for ID', mediaId);
-  // This is a mock implementation.
   await new Promise(resolve => setTimeout(resolve, 50));
 
   const initialLength = mockMediaItemStore.length;

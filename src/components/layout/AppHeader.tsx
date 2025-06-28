@@ -21,23 +21,17 @@ export function AppHeader() {
   const { user, logout } = useAuth();
   const { isMobile, setOpenMobile, openMobile } = useSidebar();
 
-  const displayName = user?.displayName || "User";
+  const displayName = user?.name || "User";
   const userEmail = user?.email || "user@example.com";
   // API role is uppercase, so we just format it nicely.
   const userRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase() : "N/A";
   
   const getAvatarFallback = () => {
-    if (user?.displayName && user.displayName.length >= 2) {
-      return user.displayName.substring(0, 2).toUpperCase();
+    if (user?.name && user.name.length >= 2) {
+      return user.name.substring(0, 2).toUpperCase();
     }
-    if (user?.username && user.username.length >= 2) {
-      return user.username.substring(0, 2).toUpperCase();
-    }
-    if (user?.displayName && user.displayName.length === 1) {
-      return user.displayName.toUpperCase();
-    }
-     if (user?.username && user.username.length === 1) {
-      return user.username.toUpperCase();
+    if (user?.name && user.name.length === 1) {
+      return user.name.toUpperCase();
     }
     return "XX";
   };
